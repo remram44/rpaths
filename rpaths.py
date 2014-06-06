@@ -1,8 +1,9 @@
+import contextlib
 import ntpath
 import os
 import posixpath
 import sys
-import contextlib
+import tempfile
 
 
 PY3 = sys.version_info[0] == 3
@@ -29,7 +30,7 @@ class AbstractPath(object):
         with a reasonable encoding. Note that these operations can raise
         UnicodeError!
         """
-        if isinstance(p, self.__class__):
+        if isinstance(p, self._cmp_base):
             return p.path
         elif isinstance(p, self._backend):
             return p
@@ -57,6 +58,16 @@ class AbstractPath(object):
     def __div__(self, other):
         return self.__class__(self, other)
     __truediv__ = __div__
+
+    def __eq__(self, other):
+        return (self._lib.normcase(self.path) ==
+                self._lib.normcase(self._to_backend(other)))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.path)
 
     def __repr__(self):
         if self._backend is unicode:
@@ -169,11 +180,13 @@ class AbstractPath(object):
 class WindowsPath(AbstractPath):
     _lib = ntpath
     _encoding = 'windows-1252'
+WindowsPath._cmp_base = WindowsPath
 
 
 class PosixPath(AbstractPath):
     _lib = posixpath
     _encoding = 'utf-8'
+PosixPath._cmp_base = PosixPath
 
 
 DefaultAbstractPath = WindowsPath if os.name == 'nt' else PosixPath
@@ -192,13 +205,27 @@ class Path(DefaultAbstractPath):
         os.chdir(self.path)
 
     @contextlib.contextmanager
-    def with_chdir(self):
+    def in_dir(self):
         previous_dir = self.cwd()
         self.chdir()
         try:
             yield
         finally:
             previous_dir.chdir()
+
+    @classmethod
+    def tempfile(cls, suffix='', prefix=None, dir=None, text=False):
+        if prefix is None:
+            prefix = tempfile.template
+        fd, filename = tempfile.mkstemp(suffix, prefix, dir, text)
+        return fd, cls(filename).absolute()
+
+    @classmethod
+    def tempdir(cls, suffix='', prefix=None, dir=None):
+        if prefix is None:
+            prefix = tempfile.template
+        dirname = tempfile.mkdtemp(suffix, prefix, dir)
+        return cls(dirname).absolute()
 
     def absolute(self):
         return self.__class__(self._lib.abspath(self.path))
