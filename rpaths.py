@@ -123,7 +123,7 @@ class AbstractPath(object):
         return self._lib.splitext(self)[1]
 
     def split_root(self):
-        if hasattr(self._lib, 'splitunc'):
+        if not PY3 and hasattr(self._lib, 'splitunc'):
             root, rest = self._lib.splitunc(self.path)
             if root:
                 if rest.startswith(self._sep):
