@@ -15,10 +15,8 @@ backend_types = (unicode, bytes)
 
 
 def supports_unicode_filenames(lib):
-    # Python is bugged
+    # Python is bugged; lib.supports_unicode_filenames is wrong
     return lib is ntpath
-
-    return lib.supports_unicode_filenames
 
 
 class AbstractPath(object):
@@ -44,10 +42,15 @@ class AbstractPath(object):
                             self.__class__.__name__, type(p)))
 
     def __init__(self, *parts):
-        if self._lib is None:
+        if self._lib is None:  # pragma: no cover
             raise RuntimeError("Can't create an AbstractPath directly!")
         self._backend = (unicode if supports_unicode_filenames(self._lib)
                          else bytes)
+        self._sep = self._lib.sep
+        if self._backend is unicode and isinstance(self._sep, bytes):
+            self._sep = self._sep.decode('ascii')
+        elif self._backend is bytes and isinstance(self._sep, unicode):
+            self._sep = self._sep.encode('ascii')
         self.path = self._lib.normpath(
                 self._lib.join(*[self._to_backend(p) for p in parts]))
 
@@ -95,7 +98,9 @@ class AbstractPath(object):
 
     @property
     def parent(self):
-        return self.__class__(self._lib.dirname(self.path))
+        p = self._lib.dirname(self.path)
+        p = self.__class__(p)
+        return p
 
     @property
     def name(self):
@@ -121,18 +126,18 @@ class AbstractPath(object):
         if hasattr(self._lib, 'splitunc'):
             root, rest = self._lib.splitunc(self.path)
             if root:
-                if rest.startswith(self._lib.sep):
-                    root += self._lib.sep
+                if rest.startswith(self._sep):
+                    root += self._sep
                     rest = rest[1:]
                 return self.__class__(root), self.__class__(rest)
         root, rest = self._lib.splitdrive(self.path)
         if root:
-            if rest.startswith(self._lib.sep):
-                root += self._lib.sep
+            if rest.startswith(self._sep):
+                root += self._sep
                 rest = rest[1:]
             return self.__class__(root), self.__class__(rest)
-        if self.path.startswith(self._lib.sep):
-            return self.__class__(self._lib.sep), self.__class__(rest[1:])
+        if self.path.startswith(self._sep):
+            return self.__class__(self._sep), self.__class__(rest[1:])
         return self.__class__(''), self
 
     @property
@@ -142,16 +147,16 @@ class AbstractPath(object):
     @property
     def components(self):
         root, loc = self.split_root()
-        components = loc.split(self._lib.sep)
+        components = loc.split(self._sep)
         if root:
             components = [root] + components
         return components
 
     def ancestor(self, n):
-        p = self.path
+        p = self
         for i in range(n):
             p = p.parent
-        return self.__class__(p)
+        return p
 
     def norm_case(self):
         return self.__class__(self._lib.normcase(self.path))
