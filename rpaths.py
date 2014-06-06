@@ -243,3 +243,114 @@ class Path(DefaultAbstractPath):
         for i, (orig_part, dest_part) in enumerate(zip(orig_list, dest_list)):
             if orig_part != self._lib.normcase(dest_part):
                 return self.__class__(dest_list[i:])
+                # TODO : Work in progress
+
+    def resolve(self):
+        return self.__class__(self._lib.realpath(self.path))
+
+    def listdir(self, pattern=None):
+        if pattern is None:
+            return [self.__class__(p) for p in os.listdir(self.path)]
+        else:
+            # TODO
+            pass
+
+    def recursedir(self, pattern=None):
+        # TODO
+        pass
+
+    def exists(self):
+        return self._lib.exists(self.path)
+
+    def lexists(self):
+        return self._lib.lexists(self.path)
+
+    def is_file(self):
+        return self._lib.isfile(self.path)
+
+    def is_dir(self):
+        return self._lib.isdir(self.path)
+
+    def is_link(self):
+        return self._lib.islink(self.path)
+
+    def is_mount(self):
+        return self._lib.ismount(self.path)
+
+    def atime(self):
+        return self._lib.atime(self.path)
+
+    def ctime(self):
+        return self._lib.ctime(self.path)
+
+    def mtime(self):
+        return self._lib.mtime(self.path)
+
+    def size(self):
+        return self._lib.getsize(self.path)
+
+    if hasattr(os.path, 'samefile'):
+        def same_file(self, other):
+            return self._lib.samefile(self.path, self._to_backend(other))
+
+    def stat(self):
+        return os.stat(self.path)
+
+    def lstat(self):
+        return os.lstat(self.path)
+
+    if hasattr(os, 'statvfs'):
+        def statvfs(self):
+            return os.statvfs(self.path)
+
+    if hasattr(os, 'chmod'):
+        def chmod(self, mode):
+            return os.chmod(self.path, mode)
+
+    if hasattr(os, 'chown'):
+        def chown(self, uid, gid):
+            return os.chown(self.path, uid, gid)
+
+    def mkdir(self, parents=False, mode=0o777):
+        if self.exists():
+            return
+        if parents:
+            os.makedirs(self.path, mode)
+        else:
+            os.mkdir(self.path, mode)
+
+    def rmdir(self, parents=False):
+        if parents:
+            os.removedirs(self.path)
+        else:
+            os.rmdir(self.path)
+
+    def remove(self):
+        os.remove(self.path)
+
+    def rename(self, new, parents=False):
+        if parents:
+            os.renames(self.path, self._to_backend(new))
+        else:
+            os.rename(self.path, self._to_backend(new))
+
+    if hasattr(os, 'link'):
+        def hardlink(self, newpath):
+            os.link(self.path, self._to_backend(newpath))
+
+    if hasattr(os, 'symlink'):
+        def symlink(self, target):
+            os.symlink(self._to_backend(target), self.path)
+
+    if hasattr(os, 'readlink'):
+        def read_link(self, absolute=False):
+            p = self.__class__(os.readlink(self))
+            if absolute:
+                return p.absolute()
+            else:
+                return p
+
+    # TODO : shutil stuff: rmtree, copy*
+
+    def open(self, mode='r'):
+        return open(self.path, mode)
