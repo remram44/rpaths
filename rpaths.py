@@ -323,13 +323,16 @@ class Path(DefaultAbstractPath):
         def chown(self, uid, gid):
             return os.chown(self.path, uid, gid)
 
-    def mkdir(self, parents=False, mode=0o777):
+    def mkdir(self, name=None, parents=False, mode=0o777):
+        if name is not None:
+            return (self / name).mkdir(parents=parents, mode=mode)
         if self.exists():
             return
         if parents:
             os.makedirs(self.path, mode)
         else:
             os.mkdir(self.path, mode)
+        return self
 
     def rmdir(self, parents=False):
         if parents:
@@ -364,5 +367,8 @@ class Path(DefaultAbstractPath):
 
     # TODO : shutil stuff: rmtree, copy*
 
-    def open(self, mode='r'):
-        return open(self.path, mode)
+    def open(self, mode='r', name=None):
+        if name is not None:
+            return open((self / name).path, mode)
+        else:
+            return open(self.path, mode)
