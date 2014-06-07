@@ -489,21 +489,25 @@ class Path(DefaultAbstractPath):
         """
         return self.__class__(self._lib.realpath(self.path))
 
-    def listdir(self):
+    def listdir(self, filter=None):
         """Returns a list of all the files in this directory.
 
         The special entries ``'.'`` and ``'..'`` will not be returned.
         """
-        return [self / self.__class__(p) for p in os.listdir(self.path)]
+        if filter is None:
+            return [self / self.__class__(p) for p in os.listdir(self.path)]
+        else:
+            # TODO
+            pass
 
-    def recursedir(self, top_down=True):
+    def recursedir(self, filter=None, top_down=True):
         """Recursively lists all files under this directory.
 
         Symbolic links will be walked but files will never be duplicated.
         """
-        return self._recursedir(top_down=top_down, seen=set())
+        self._recurse_dir(filter=filter, top_down=top_down, seen=set())
 
-    def _recursedir(self, top_down, seen):
+    def _recursedir(self, filter, top_down, seen):
         if not self.is_dir():
             raise ValueError("recursedir() called on non-directory %s" % self)
         real_dir = self.resolve()
