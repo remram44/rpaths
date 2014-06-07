@@ -61,25 +61,28 @@ class TestLists(unittest.TestCase):
         finally:
             d.rmdir()
 
-    def test_listdir_posix(self):
-        l1 = self.tmp.listdir()
+    def test_listdir(self):
+        l1 = list(self.tmp.listdir())
         s1 = set(p.path for p in l1)
         self.assertEqual(len(l1), len(s1))
         if issubclass(Path, PosixPath):
-            self.assertEqual(s1,
-                             set([b'file', b'r\xC3\xA9mi\'s file',
-                                  b'r\xC3\xA9pertoire']))
+            expected = [b'file', b'r\xC3\xA9mi\'s file', b'r\xC3\xA9pertoire']
+            expected = set(os.path.join(self.tmp.path, f) for f in expected)
+            self.assertEqual(s1, expected)
         else:
-            self.assertEqual(s1,
-                             set([u'file', u'r\xE9mi\'s file',
-                                  u'r\xE9pertoire']))
+            expected = [u'file', u'r\xE9mi\'s file', u'r\xE9pertoire']
+            expected = set(os.path.join(self.tmp.path, f) for f in expected)
+            self.assertEqual(s1, expected)
 
-        l2 = (self.tmp / u'r\xE9pertoire').listdir()
+        p2 = self.tmp / u'r\xE9pertoire'
+        l2 = list(p2.listdir())
         s2 = set(p.path for p in l2)
         self.assertEqual(len(l2), len(s2))
         if issubclass(Path, PosixPath):
-            self.assertEqual(s2,
-                             set([b'file', b'nested', b'last']))
+            expected = [b'file', b'nested', b'last']
+            expected = set(os.path.join(p2.path, f) for f in expected)
+            self.assertEqual(s2, expected)
         else:
-            self.assertEqual(s2,
-                             set([u'file', u'nested', u'last']))
+            expected = [u'file', u'nested', u'last']
+            expected = set(os.path.join(p2.path, f) for f in expected)
+            self.assertEqual(s2, expected)

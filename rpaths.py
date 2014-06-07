@@ -250,7 +250,7 @@ class Path(DefaultAbstractPath):
         return self.__class__(self._lib.realpath(self.path))
 
     def listdir(self):
-        return [self.__class__(p) for p in os.listdir(self.path)]
+        return [self / self.__class__(p) for p in os.listdir(self.path)]
 
     def recursedir(self, top_down=True):
         self._recurse_dir(top_down=top_down, seen=set())
