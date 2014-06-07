@@ -72,7 +72,7 @@ class AbstractPath(object):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(self.path)
+        return hash(self._lib.normcase(self.path))
 
     def __repr__(self):
         if self._backend is unicode:
