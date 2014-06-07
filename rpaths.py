@@ -312,13 +312,13 @@ class Path(DefaultAbstractPath):
         return self._lib.ismount(self.path)
 
     def atime(self):
-        return self._lib.atime(self.path)
+        return self._lib.getatime(self.path)
 
     def ctime(self):
-        return self._lib.ctime(self.path)
+        return self._lib.getctime(self.path)
 
     def mtime(self):
-        return self._lib.mtime(self.path)
+        return self._lib.getmtime(self.path)
 
     def size(self):
         return self._lib.getsize(self.path)
