@@ -21,6 +21,7 @@ class TestConcrete(unittest.TestCase):
     and POSIX to ensure everything is correct.
     """
     def test_cwd(self):
+        """Tests cwd, in_dir."""
         cwd = os.getcwd()
 
         if os.name == 'nt' and isinstance(cwd, bytes):
@@ -37,6 +38,7 @@ class TestConcrete(unittest.TestCase):
         self.assertFalse(tmp.exists())
 
     def test_tempfile(self):
+        """Tests tempfile."""
         fd, f = Path.tempfile()
         os.close(fd)
         try:
@@ -53,6 +55,7 @@ class TestLists(unittest.TestCase):
     """
     @classmethod
     def setUpClass(cls):
+        """Builds a test hierarchy."""
         cls.tmp = Path.tempdir()
         cls.tmp.open('w', 'file').close()
         cls.tmp.open('w', u'r\xE9mi\'s file').close()
@@ -66,9 +69,11 @@ class TestLists(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        """Removes the test files."""
         cls.tmp.rmtree()
 
     def test_list_empty(self):
+        """Lists an empty directory."""
         d = self.tmp.mkdir('emptydir')
         try:
             self.assertEqual(d.listdir(), [])
@@ -76,6 +81,7 @@ class TestLists(unittest.TestCase):
             d.rmdir()
 
     def test_listdir(self):
+        """Lists test directories."""
         l1 = list(self.tmp.listdir())
         s1 = set(p.path for p in l1)
         self.assertEqual(len(l1), len(s1))
@@ -98,6 +104,7 @@ class TestLists(unittest.TestCase):
         self.assertEqual(s2, expected)
 
     def test_recursedir(self):
+        """Uses recursedir to list a hierarchy."""
         l = list(self.tmp.recursedir())
         s = set(p.path for p in l)
         if issubclass(Path, PosixPath):

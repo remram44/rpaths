@@ -10,6 +10,7 @@ class TestWindows(unittest.TestCase):
     """Tests for WindowsPath.
     """
     def test_construct(self):
+        """Tests building paths."""
         self.assertEqual(WindowsPath(u'C:\\',
                                      WindowsPath('some/dir'),
                                      u'with',
@@ -22,6 +23,7 @@ class TestWindows(unittest.TestCase):
                          u'Users\\R\xE9mi\\Desktop\\pictures\\m\xE9chant.jpg')
 
     def test_str(self):
+        """Tests getting string representations (repr/bytes/unicode)."""
         latin = WindowsPath(u'C:\\r\xE9mi')
         nonlatin = WindowsPath(u'C:\\you like\u203D.txt')
         # repr()
@@ -40,7 +42,8 @@ class TestWindows(unittest.TestCase):
         self.assertEqual(unicode(nonlatin),
                          u'C:\\you like\u203d.txt')
 
-    def test_parent(self):
+    def test_parts(self):
+        """Tests parent, ancestor, name, stem, ext."""
         relative = WindowsPath(u'directory/users\\r\xE9mi/file.txt')
         absolute = WindowsPath(u'\\some/other\\thing.h\xE9h\xE9')
         self.assertEqual(relative.parent.path,
@@ -56,6 +59,7 @@ class TestWindows(unittest.TestCase):
         self.assertEqual(absolute.ext, u'.h\xE9h\xE9')
 
     def test_root(self):
+        """Tests roots, drives and UNC shares."""
         a = WindowsPath(b'some/relative/path')
         b = WindowsPath(u'alsorelative')
         c = WindowsPath(b'/this/is/absolute')
@@ -87,6 +91,7 @@ class TestWindows(unittest.TestCase):
                        (u'\\\\SOMEMACHINE\\share\\', u'some\\file')])
 
     def test_rel_path_to(self):
+        """Tests the rel_path_to method."""
         self.assertEqual(WindowsPath(u'\\var\\log\\apache2\\').rel_path_to(
                          u'\\var\\www\\cat.jpg').path,
                          u'..\\..\\www\\cat.jpg')
@@ -116,6 +121,7 @@ class TestPosix(unittest.TestCase):
     """Tests for PosixPath.
     """
     def test_construct(self):
+        """Tests building paths."""
         self.assertEqual(PosixPath(u'/',
                                    PosixPath(b'r\xE9mis/dir'),
                                    u'with',
@@ -131,6 +137,7 @@ class TestPosix(unittest.TestCase):
                              b'/tmp/r\xE9mi')
 
     def test_str(self):
+        """Tests getting string representations (repr/bytes/unicode)."""
         utf = PosixPath(b'/tmp/r\xC3\xA9mi')
         nonutf = PosixPath(b'/tmp/r\xE9mi')
         # repr()
@@ -149,7 +156,8 @@ class TestPosix(unittest.TestCase):
         self.assertEqual(unicode(nonutf),
                          u'/tmp/r\uFFFDmi')
 
-    def test_parent(self):
+    def test_parts(self):
+        """Tests parent, ancestor, name, stem, ext."""
         relative = PosixPath(b'directory/users/r\xE9mi/file.txt')
         absolute = PosixPath(u'/some/other/thing.h\xE9h\xE9')
         self.assertEqual(relative.parent.path,
@@ -165,6 +173,7 @@ class TestPosix(unittest.TestCase):
         self.assertEqual(absolute.ext, b'.h\xC3\xA9h\xC3\xA9')
 
     def test_root(self):
+        """Tests roots."""
         a = PosixPath(b'some/relative/path')
         b = PosixPath(u'alsorelative')
         c = PosixPath(b'/this/is/absolute')
@@ -188,6 +197,7 @@ class TestPosix(unittest.TestCase):
         self.assertEqual(d.root.path, b'/')
 
     def test_rel_path_to(self):
+        """Tests the rel_path_to method."""
         self.assertEqual(PosixPath(b'/var/log/apache2/').rel_path_to(
                          b'/var/www/cat.jpg').path,
                          b'../../www/cat.jpg')
