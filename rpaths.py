@@ -207,9 +207,6 @@ class AbstractPath(object):
             up = ['..'] * (len(orig_list) - i - 1)
             return self.__class__(*up)
 
-    def relative(self):
-        return self.cwd().rel_path_to(self)
-
 
 class WindowsPath(AbstractPath):
     _lib = ntpath
@@ -266,6 +263,9 @@ class Path(DefaultAbstractPath):
 
     def rel_path_to(self, dest):
         return self.absolute().rel_path_to(dest.absolute())
+
+    def relative(self):
+        return self.cwd().rel_path_to(self)
 
     def resolve(self):
         return self.__class__(self._lib.realpath(self.path))
