@@ -248,14 +248,10 @@ class Path(DefaultAbstractPath):
     def resolve(self):
         return self.__class__(self._lib.realpath(self.path))
 
-    def listdir(self, pattern=None):
-        if pattern is None:
-            return [self.__class__(p) for p in os.listdir(self.path)]
-        else:
-            # TODO
-            pass
+    def listdir(self):
+        return [self.__class__(p) for p in os.listdir(self.path)]
 
-    def recursedir(self, pattern=None):
+    def recursedir(self):
         # TODO
         pass
 
