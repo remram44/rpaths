@@ -251,9 +251,25 @@ class Path(DefaultAbstractPath):
     def listdir(self):
         return [self.__class__(p) for p in os.listdir(self.path)]
 
-    def recursedir(self):
-        # TODO
-        pass
+    def recursedir(self, top_down=True):
+        self._recurse_dir(top_down=top_down, seen=set())
+
+    def _recursedir(self, top_down, seen):
+        if not self.is_dir():
+            raise ValueError("recursedir() called on non-directory %s" % self)
+        real_dir = self.resolve()
+        if real_dir in seen:
+            return
+        seen.add(real_dir)
+        for child in self.listdir():
+            is_dir = child.is_dir()
+            if is_dir and not top_down:
+                for grandkid in child._recursedir(top_down, seen):
+                    yield grandkid
+            yield child
+            if is_dir and top_down:
+                for grandkid in child._recursedir(top_down, seen):
+                    yield grandkid
 
     def exists(self):
         return self._lib.exists(self.path)
