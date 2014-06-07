@@ -38,7 +38,8 @@ class AbstractPath(object):
         elif self._backend is unicode and isinstance(p, bytes):
             return p.decode(self._encoding)
         elif self._backend is bytes and isinstance(p, unicode):
-            return p.encode(self._encoding)
+            return p.encode(self._encoding,
+                            'surrogateescape' if PY3 else 'strict')
         else:
             raise TypeError("Can't construct a %s from %r" % (
                             self.__class__.__name__, type(p)))

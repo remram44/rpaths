@@ -3,7 +3,7 @@ try:
 except ImportError:
     import unittest
 
-from rpaths import unicode, PosixPath, WindowsPath
+from rpaths import unicode, PY3, PosixPath, WindowsPath
 
 
 class TestWindows(unittest.TestCase):
@@ -101,6 +101,9 @@ class TestPosix(unittest.TestCase):
         self.assertEqual((PosixPath(b'/tmp/dir') /
                           PosixPath(u'r\xE9mis/files/')).path,
                          b'/tmp/dir/r\xC3\xA9mis/files')
+        if PY3:
+            self.assertEqual(PosixPath(u'/tmp/r\uDCE9mi').path,
+                             b'/tmp/r\xE9mi')
 
     def test_str(self):
         utf = PosixPath(b'/tmp/r\xC3\xA9mi')
