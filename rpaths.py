@@ -2,6 +2,7 @@ import contextlib
 import ntpath
 import os
 import posixpath
+import shutil
 import sys
 import tempfile
 
@@ -365,7 +366,10 @@ class Path(DefaultAbstractPath):
             else:
                 return p
 
-    # TODO : shutil stuff: rmtree, copy*
+    # TODO : shutil copy* stuff
+
+    def rmtree(self, ignore_errors=False):
+        shutil.rmtree(self.path, ignore_errors)
 
     def open(self, mode='r', name=None):
         if name is not None:
