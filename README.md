@@ -17,7 +17,7 @@ them chokes on one valid filename or another.
 with pathlib, one of the main inspirations for this work. Unfortunately it
 makes its path inherit from unicode or bytes, which makes the abstract/concrete
 class separation too tricky.
-* [pathlib](https://docs.python.org/3/library/pathlib.html) is affected with
+* [pathlib](https://bitbucket.org/pitrou/pathlib/) is affected with
 [a bug preventing it from representing some filenames on Windows on Python 2]
 (https://bitbucket.org/pitrou/pathlib/issue/25); this bug was marked as
 wontfix. Furthermore, it works very differently on Python 2 and 3, which I
