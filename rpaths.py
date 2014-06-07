@@ -132,7 +132,7 @@ class AbstractPath(object):
 
     @property
     def ext(self):
-        return self._lib.splitext(self)[1]
+        return self._lib.splitext(self.path)[1]
 
     def split_root(self):
         if not PY3 and hasattr(self._lib, 'splitunc'):
@@ -175,7 +175,7 @@ class AbstractPath(object):
 
     @property
     def is_absolute(self):
-        return bool(self.root)
+        return self.root.path != self._to_backend('.')
 
 
 class WindowsPath(AbstractPath):
