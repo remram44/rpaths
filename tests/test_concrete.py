@@ -48,7 +48,10 @@ class TestLists(unittest.TestCase):
         d = cls.tmp.mkdir(u'r\xE9pertoire')
         d.open('w', 'file').close()
         d.mkdir('nested')
-        d.open('w', 'last').close()
+        if issubclass(Path, PosixPath):
+            (d / 'last').symlink('..')
+        else:
+            d.open('w', 'last').close()
 
     @classmethod
     def tearDownClass(cls):
@@ -67,12 +70,10 @@ class TestLists(unittest.TestCase):
         self.assertEqual(len(l1), len(s1))
         if issubclass(Path, PosixPath):
             expected = [b'file', b'r\xC3\xA9mi\'s file', b'r\xC3\xA9pertoire']
-            expected = set(os.path.join(self.tmp.path, f) for f in expected)
-            self.assertEqual(s1, expected)
         else:
             expected = [u'file', u'r\xE9mi\'s file', u'r\xE9pertoire']
-            expected = set(os.path.join(self.tmp.path, f) for f in expected)
-            self.assertEqual(s1, expected)
+        expected = set(os.path.join(self.tmp.path, f) for f in expected)
+        self.assertEqual(s1, expected)
 
         p2 = self.tmp / u'r\xE9pertoire'
         l2 = list(p2.listdir())
@@ -80,9 +81,21 @@ class TestLists(unittest.TestCase):
         self.assertEqual(len(l2), len(s2))
         if issubclass(Path, PosixPath):
             expected = [b'file', b'nested', b'last']
-            expected = set(os.path.join(p2.path, f) for f in expected)
-            self.assertEqual(s2, expected)
         else:
             expected = [u'file', u'nested', u'last']
-            expected = set(os.path.join(p2.path, f) for f in expected)
-            self.assertEqual(s2, expected)
+        expected = set(os.path.join(p2.path, f) for f in expected)
+        self.assertEqual(s2, expected)
+
+    def test_recursedir(self):
+        l = list(self.tmp.recursedir())
+        s = set(p.path for p in l)
+        if issubclass(Path, PosixPath):
+            expected = [b'file', b'r\xC3\xA9mi\'s file', b'r\xC3\xA9pertoire',
+                        b'r\xC3\xA9pertoire/file', b'r\xC3\xA9pertoire/last',
+                        b'r\xC3\xA9pertoire/nested']
+        else:
+            expected = [u'file', u'r\xE9mi\'s file', u'r\xE9pertoire',
+                        u'r\xE9pertoire\\file', u'r\xE9pertoire\\last',
+                        u'r\xE9pertoire\\nested']
+        expected = set(os.path.join(self.tmp.path, f) for f in expected)
+        self.assertEqual(s, expected)

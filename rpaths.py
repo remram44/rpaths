@@ -253,7 +253,7 @@ class Path(DefaultAbstractPath):
         return [self / self.__class__(p) for p in os.listdir(self.path)]
 
     def recursedir(self, top_down=True):
-        self._recurse_dir(top_down=top_down, seen=set())
+        return self._recursedir(top_down=top_down, seen=set())
 
     def _recursedir(self, top_down, seen):
         if not self.is_dir():
