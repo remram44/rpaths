@@ -367,10 +367,26 @@ class Path(DefaultAbstractPath):
             else:
                 return p
 
-    # TODO : shutil copy* stuff
+    def copyfile(self, target):
+        shutil.copyfile(self.path, self._to_backend(target))
+
+    def copymode(self, target):
+        shutil.copymode(self.path, self._to_backend(target))
+
+    def copystat(self, target):
+        shutil.copystat(self.path, self._to_backend(target))
+
+    def copy(self, target):
+        shutil.copy(self.path, self._to_backend(target))
+
+    def copytree(self, target, symlinks=False):
+        shutil.copytree(self.path, self._to_backend(target), symlinks)
 
     def rmtree(self, ignore_errors=False):
         shutil.rmtree(self.path, ignore_errors)
+
+    def move(self, target):
+        shutil.move(self.path, self._to_backend(target))
 
     def open(self, mode='r', name=None):
         if name is not None:
