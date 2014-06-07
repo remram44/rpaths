@@ -9,7 +9,7 @@ EOF
         ;;
     check_style)
         (while read line; do echo "$line"; sh -c "$line" || exit $?; done)<<'EOF'
-        flake8 --ignore=E126 .
+        flake8 --ignore=E126 rpaths.py setup.py tests
 EOF
         ;;
 esac
