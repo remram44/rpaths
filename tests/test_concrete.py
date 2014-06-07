@@ -35,3 +35,51 @@ class TestConcrete(unittest.TestCase):
         self.assertTrue(tmp.exists())
         tmp.rmdir()
         self.assertFalse(tmp.exists())
+
+
+class TestLists(unittest.TestCase):
+    """Tests listing methods.
+    """
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = Path.tempdir()
+        cls.tmp.open('w', 'file').close()
+        cls.tmp.open('w', u'r\xE9mi\'s file').close()
+        d = cls.tmp.mkdir(u'r\xE9pertoire')
+        d.open('w', 'file').close()
+        d.mkdir('nested')
+        d.open('w', 'last').close()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.rmtree()
+
+    def test_list_empty(self):
+        d = self.tmp.mkdir('emptydir')
+        try:
+            self.assertEqual(d.listdir(), [])
+        finally:
+            d.rmdir()
+
+    def test_listdir_posix(self):
+        l1 = self.tmp.listdir()
+        s1 = set(p.path for p in l1)
+        self.assertEqual(len(l1), len(s1))
+        if issubclass(Path, PosixPath):
+            self.assertEqual(s1,
+                             set([b'file', b'r\xC3\xA9mi\'s file',
+                                  b'r\xC3\xA9pertoire']))
+        else:
+            self.assertEqual(s1,
+                             set([u'file', u'r\xE9mi\'s file',
+                                  u'r\xE9pertoire']))
+
+        l2 = (self.tmp / u'r\xE9pertoire').listdir()
+        s2 = set(p.path for p in l2)
+        self.assertEqual(len(l2), len(s2))
+        if issubclass(Path, PosixPath):
+            self.assertEqual(s2,
+                             set([b'file', b'nested', b'last']))
+        else:
+            self.assertEqual(s2,
+                             set([u'file', u'nested', u'last']))
