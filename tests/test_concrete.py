@@ -32,3 +32,6 @@ class TestConcrete(unittest.TestCase):
         with tmp.in_dir():
             self.assertEqual(Path.cwd(), tmp)
         self.assertNotEqual(Path.cwd(), tmp)
+        self.assertTrue(tmp.exists())
+        tmp.rmdir()
+        self.assertFalse(tmp.exists())
