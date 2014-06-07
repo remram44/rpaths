@@ -36,6 +36,17 @@ class TestConcrete(unittest.TestCase):
         tmp.rmdir()
         self.assertFalse(tmp.exists())
 
+    def test_tempfile(self):
+        fd, f = Path.tempfile()
+        os.close(fd)
+        try:
+            self.assertTrue(f.exists())
+            self.assertTrue(f.is_file())
+            self.assertTrue(f.is_absolute)
+        finally:
+            f.remove()
+            self.assertFalse(f.exists())
+
 
 class TestLists(unittest.TestCase):
     """Tests listing methods.
