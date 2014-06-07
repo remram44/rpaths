@@ -51,6 +51,9 @@ class TestWindows(unittest.TestCase):
                          u'\\')
         self.assertEqual(relative.name, u'file.txt')
         self.assertEqual(absolute.name, u'thing.h\xE9h\xE9')
+        self.assertEqual(absolute.unicodename, u'thing.h\xE9h\xE9')
+        self.assertEqual(absolute.stem, u'thing')
+        self.assertEqual(absolute.ext, u'.h\xE9h\xE9')
 
     def test_root(self):
         a = WindowsPath(b'some/relative/path')
@@ -67,10 +70,14 @@ class TestWindows(unittest.TestCase):
                          (u'.', u'some\\relative\\path'))
         self.assertEqual(split_root(b),
                          (u'.', u'alsorelative'))
+        self.assertFalse(b.is_absolute)
         self.assertEqual(split_root(c),
                          (u'\\', u'this\\is\\absolute'))
+        self.assertTrue(c.is_absolute)
         self.assertEqual(split_root(d),
                          (u'C:\\', u'.'))
+        self.assertTrue(d.is_absolute)
+        self.assertEqual(d.root.path, u'C:\\')
         self.assertEqual(split_root(e),
                          (u'C:\\', u'also\\absolute'))
         # FIXME : normpath() doesn't behave consistently: puts \ at the end on
@@ -126,6 +133,8 @@ class TestPosix(unittest.TestCase):
         self.assertEqual(relative.name, b'file.txt')
         self.assertEqual(absolute.name, b'thing.h\xC3\xA9h\xC3\xA9')
         self.assertEqual(absolute.unicodename, u'thing.h\xE9h\xE9')
+        self.assertEqual(absolute.stem, b'thing')
+        self.assertEqual(absolute.ext, b'.h\xC3\xA9h\xC3\xA9')
 
     def test_root(self):
         a = PosixPath(b'some/relative/path')
@@ -141,7 +150,11 @@ class TestPosix(unittest.TestCase):
                          (b'.', b'some/relative/path'))
         self.assertEqual(split_root(b),
                          (b'.', b'alsorelative'))
+        self.assertFalse(b.is_absolute)
         self.assertEqual(split_root(c),
                          (b'/', b'this/is/absolute'))
+        self.assertTrue(c.is_absolute)
         self.assertEqual(split_root(d),
                          (b'/', b'.'))
+        self.assertTrue(d.is_absolute)
+        self.assertEqual(d.root.path, b'/')
