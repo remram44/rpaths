@@ -19,6 +19,13 @@ sys.path.append(start_dir)
 locale.setlocale(locale.LC_ALL, 'C')
 
 
+if not hasattr(unittest, 'skipIf'):
+    sys.stderr.write("This testsuite will not work with pre-2.7 unittest. If "
+                     "running Python 2.6, you'll need to install the "
+                     "'unittest2' package.\n")
+    sys.exit(1)
+
+
 class Program(unittest.TestProgram):
     def createTests(self):
         if self.testNames is None:

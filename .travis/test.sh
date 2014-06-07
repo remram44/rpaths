@@ -2,7 +2,7 @@
 
 case "$TEST_MODE"
 in
-    run_program)
+    run_tests)
         (while read line; do echo "$line"; sh -c "$line" || exit $?; done)<<'EOF'
         python tests
 EOF
