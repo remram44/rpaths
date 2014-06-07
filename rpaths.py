@@ -159,10 +159,16 @@ class AbstractPath(object):
 
     @property
     def components(self):
+        return [self.__class__(p) for p in self._components()]
+
+    def _components(self):
         root, loc = self.split_root()
-        components = loc.split(self._sep)
-        if root:
-            components = [root] + components
+        if root.path != '.':
+            components = [root.path]
+        else:
+            components = []
+        if loc.path != self._to_backend('.'):
+            components.extend(loc.path.split(self._sep))
         return components
 
     def ancestor(self, n):
@@ -177,6 +183,29 @@ class AbstractPath(object):
     @property
     def is_absolute(self):
         return self.root.path != self._to_backend('.')
+
+    def rel_path_to(self, dest):
+        dest = self.__class__(dest)
+
+        orig_list = self.norm_case()._components()
+        dest_list = dest._components()
+
+        for i, (orig_part, dest_part) in enumerate(zip(orig_list, dest_list)):
+            if orig_part != self._lib.normcase(dest_part):
+                up = ['..'] * (len(orig_list) - i)
+                return self.__class__(*(up + dest_list[i:]))
+
+        if len(orig_list) <= len(dest_list):
+            if len(dest_list) > i + 1:
+                return self.__class__(*dest_list[i + 1:])
+            else:
+                return self.__class__('')
+        else:
+            up = ['..'] * (len(orig_list) - i - 1)
+            return self.__class__(*up)
+
+    def relative(self):
+        return self.cwd().rel_path_to(self)
 
 
 class WindowsPath(AbstractPath):
@@ -232,20 +261,8 @@ class Path(DefaultAbstractPath):
     def absolute(self):
         return self.__class__(self._lib.abspath(self.path))
 
-    def relative(self):
-        return self.cwd().rel_path_to(self)
-
     def rel_path_to(self, dest):
-        orig = self.absolute()
-        dest = self._to_backend(dest).absolute()
-
-        orig_list = orig.norm_case().components
-        dest_list = dest.components
-
-        for i, (orig_part, dest_part) in enumerate(zip(orig_list, dest_list)):
-            if orig_part != self._lib.normcase(dest_part):
-                return self.__class__(dest_list[i:])
-                # TODO : Work in progress
+        return self.absolute().rel_path_to(dest.absolute())
 
     def resolve(self):
         return self.__class__(self._lib.realpath(self.path))

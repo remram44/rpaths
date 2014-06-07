@@ -86,6 +86,31 @@ class TestWindows(unittest.TestCase):
                       [(u'\\\\SOMEMACHINE\\share', u'some\\file'),
                        (u'\\\\SOMEMACHINE\\share\\', u'some\\file')])
 
+    def test_rel_path_to(self):
+        self.assertEqual(WindowsPath(u'\\var\\log\\apache2\\').rel_path_to(
+                         u'\\var\\www\\cat.jpg').path,
+                         u'..\\..\\www\\cat.jpg')
+        self.assertEqual(WindowsPath(u'C:\\var\\log\\apache2\\').rel_path_to(
+                         u'C:\\tmp\\access.log').path,
+                         u'..\\..\\..\\tmp\\access.log')
+        self.assertEqual(WindowsPath(u'var\\log').rel_path_to(
+                         u'var\\log\\apache2\\access.log').path,
+                         u'apache2\\access.log')
+        self.assertEqual(WindowsPath(u'\\var\\log\\apache2').rel_path_to(
+                         u'\\var\\log\\apache2').path,
+                         u'.')
+        self.assertEqual(WindowsPath(u'C:\\').rel_path_to(
+                         u'C:\\var\\log\\apache2\\access.log').path,
+                         u'var\\log\\apache2\\access.log')
+        self.assertEqual(WindowsPath(u'\\tmp\\secretdir\\').rel_path_to(
+                         u'\\').path,
+                         u'..\\..')
+        self.assertEqual(WindowsPath(u'C:\\tmp\\secretdir\\').rel_path_to(
+                         u'D:\\other\\file.txt').path,
+                         u'D:\\other\\file.txt')
+        with self.assertRaises(TypeError):
+            WindowsPath(u'C:\\mydir\\').rel_path_to(PosixPath('/tmp/file'))
+
 
 class TestPosix(unittest.TestCase):
     """Tests for PosixPath.
@@ -161,3 +186,23 @@ class TestPosix(unittest.TestCase):
                          (b'/', b'.'))
         self.assertTrue(d.is_absolute)
         self.assertEqual(d.root.path, b'/')
+
+    def test_rel_path_to(self):
+        self.assertEqual(PosixPath(b'/var/log/apache2/').rel_path_to(
+                         b'/var/www/cat.jpg').path,
+                         b'../../www/cat.jpg')
+        self.assertEqual(PosixPath(b'/var/log/apache2/').rel_path_to(
+                         b'/tmp/access.log').path,
+                         b'../../../tmp/access.log')
+        self.assertEqual(PosixPath(b'var/log').rel_path_to(
+                         b'var/log/apache2/access.log').path,
+                         b'apache2/access.log')
+        self.assertEqual(PosixPath(b'/var/log/apache2').rel_path_to(
+                         b'/var/log/apache2').path,
+                         b'.')
+        self.assertEqual(PosixPath(b'/').rel_path_to(
+                         b'/var/log/apache2/access.log').path,
+                         b'var/log/apache2/access.log')
+        self.assertEqual(PosixPath(b'/tmp/secretdir/').rel_path_to(
+                         b'/').path,
+                         b'../..')
