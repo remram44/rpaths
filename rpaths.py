@@ -7,6 +7,9 @@ import sys
 import tempfile
 
 
+__version__ = '0.1'
+
+
 PY3 = sys.version_info[0] == 3
 
 if PY3:
