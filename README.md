@@ -2,9 +2,12 @@
 (https://travis-ci.org/remram44/rpaths)
 
 rpaths
-===============
+======
 
 rpaths is yet another path manipulation library.
+
+The [full documentation is built by ReadTheDocs]
+(http://rpaths.remram.fr/en/latest/).
 
 It pains me that I should have to write this, however after a survey of the
 existing packages, including [pathlib]
