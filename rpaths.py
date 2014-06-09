@@ -608,9 +608,9 @@ class Path(DefaultAbstractPath):
 
             If absolute is True, the target is made absolute.
             """
-            p = self.__class__(os.readlink(self))
+            p = self.__class__(os.readlink(self.path))
             if absolute:
-                return p.absolute()
+                return (self.parent / p).absolute()
             else:
                 return p
 
