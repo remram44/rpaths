@@ -290,6 +290,15 @@ class AbstractPath(object):
             up = ['..'] * (len(orig_list) - i - 1)
             return self.__class__(*up)
 
+    def lies_under(self, prefix):
+        """Indicates if the `prefix` is a parent of this path.
+        """
+        orig_list = self.norm_case()._components()
+        pref_list = self.__class__(prefix).norm_case()._components()
+
+        return (len(orig_list) >= len(pref_list) and
+                orig_list[:len(pref_list)] == pref_list)
+
 
 class WindowsPath(AbstractPath):
     """An abstract representation of a Windows path.

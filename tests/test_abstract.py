@@ -116,6 +116,37 @@ class TestWindows(unittest.TestCase):
         with self.assertRaises(TypeError):
             WindowsPath(u'C:\\mydir\\').rel_path_to(PosixPath('/tmp/file'))
 
+    def test_lies_under(self):
+        """ Tests the lies_under method."""
+        self.assertTrue(WindowsPath(u'\\tmp')
+                        .lies_under(u'\\'))
+        self.assertFalse(WindowsPath(u'C:\\tmp')
+                         .lies_under(u'C:\\var'))
+        self.assertFalse(WindowsPath(u'\\tmp')
+                         .lies_under(u'C:\\tmp'))
+        self.assertFalse(WindowsPath(u'C:\\')
+                         .lies_under(u'D:\\tmp'))
+        self.assertTrue(WindowsPath(u'\\tmp\\some\\file\\here')
+                        .lies_under(u'\\tmp\\some'))
+        self.assertFalse(WindowsPath(u'\\tmp\\some\\file\\here')
+                         .lies_under(u'\\tmp\\no'))
+        self.assertFalse(WindowsPath(u'C:\\tmp\\some\\file\\here')
+                         .lies_under(u'C:\\no\\tmp\\some'))
+        self.assertFalse(WindowsPath(u'\\tmp\\some\\file\\here')
+                         .lies_under(u'\\no\\some'))
+        self.assertTrue(WindowsPath(u'C:\\tmp\\some\\file\\here')
+                        .lies_under(u'C:\\tmp\\some\\file\\here'))
+        self.assertTrue(WindowsPath(u'\\')
+                        .lies_under(u'\\'))
+        self.assertTrue(WindowsPath(u'')
+                        .lies_under(u''))
+        self.assertTrue(WindowsPath(u'test')
+                        .lies_under(u''))
+        self.assertFalse(WindowsPath(u'')
+                         .lies_under(u'test'))
+        self.assertFalse(WindowsPath(u'test')
+                         .lies_under(u'\\'))
+
 
 class TestPosix(unittest.TestCase):
     """Tests for PosixPath.
@@ -216,3 +247,30 @@ class TestPosix(unittest.TestCase):
         self.assertEqual(PosixPath(b'/tmp/secretdir/').rel_path_to(
                          b'/').path,
                          b'../..')
+
+    def test_lies_under(self):
+        """ Tests the lies_under method."""
+        self.assertTrue(PosixPath(b'/tmp')
+                        .lies_under(b'/'))
+        self.assertFalse(PosixPath(b'/tmp')
+                         .lies_under(b'/var'))
+        self.assertTrue(PosixPath(b'/tmp/some/file/here')
+                        .lies_under(b'/tmp/some'))
+        self.assertFalse(PosixPath(b'/tmp/some/file/here')
+                         .lies_under(b'/tmp/no'))
+        self.assertFalse(PosixPath(b'/tmp/some/file/here')
+                         .lies_under(b'/no/tmp/some'))
+        self.assertFalse(PosixPath(b'/tmp/some/file/here')
+                         .lies_under(b'/no/some'))
+        self.assertTrue(PosixPath(b'/tmp/some/file/here')
+                        .lies_under(b'/tmp/some/file/here'))
+        self.assertTrue(PosixPath(b'/')
+                        .lies_under(b'/'))
+        self.assertTrue(PosixPath(b'')
+                        .lies_under(b''))
+        self.assertTrue(PosixPath(b'test')
+                        .lies_under(b''))
+        self.assertFalse(PosixPath(b'')
+                         .lies_under(b'test'))
+        self.assertFalse(PosixPath(b'test')
+                         .lies_under(b'/'))
