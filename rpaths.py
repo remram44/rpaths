@@ -147,15 +147,15 @@ class AbstractPath(object):
         __str__ = __bytes__
 
     def expand_user(self):
-        """Replaces ~ or ~user by that users's home directory.
+        """Replaces ``~`` or ``~user`` by that `user`'s home directory.
         """
         return self.__class__(self._lib.expanduser(self.path))
 
     def expand_vars(self):
         """Expands environment variables in the path.
 
-        They might be of the form $name or ${name}; references to non-existing
-        variables are kept unchanged.
+        They might be of the form ``$name`` or ``${name}``; references to
+        non-existing variables are kept unchanged.
         """
         return self.__class__(self._lib.expandvars(self.path))
 
@@ -223,7 +223,7 @@ class AbstractPath(object):
         """The root of this path.
 
         This will be either a root (with optionally a drive name or UNC share)
-        or '.' for relative paths.
+        or ``'.'`` for relative paths.
         """
         return self.split_root()[0]
 
@@ -266,10 +266,10 @@ class AbstractPath(object):
         return self.root.path != self._to_backend('.')
 
     def rel_path_to(self, dest):
-        """Builds a relative path leading from this one to another.
+        """Builds a relative path leading from this one to the given `dest`.
 
         Note that these paths might be both relative, in which case they'll be
-        assumed to be considered starting from the same directory.
+        assumed to start from the same directory.
         """
         dest = self.__class__(dest)
 
@@ -319,8 +319,9 @@ DefaultAbstractPath = WindowsPath if os.name == 'nt' else PosixPath
 class Path(DefaultAbstractPath):
     """A concrete representation of an actual path on this system.
 
-    This extends either WindowsPath or PosixPath depending on the current
-    system. It adds concrete filesystem operations.
+    This extends either :class:`~rpaths.WindowsPath` or
+    :class:`~rpaths.PosixPath` depending on the current system. It adds
+    concrete filesystem operations.
     """
     @property
     def _encoding(self):
@@ -353,20 +354,20 @@ class Path(DefaultAbstractPath):
         """Returns a new temporary file.
 
         The return value is a pair (fd, path) where fd is the file descriptor
-        returned by os.open, and path is a Path to it.
+        returned by :func:`os.open`, and path is a :class:`~rpaths.Path` to it.
 
-        If 'suffix' is specified, the file name will end with that suffix,
+        If `suffix` is specified, the file name will end with that suffix,
         otherwise there will be no suffix.
 
-        If 'prefix' is specified, the file name will begin with that prefix,
+        If `prefix` is specified, the file name will begin with that prefix,
         otherwise a default prefix is used.
 
-        If 'dir' is specified, the file will be created in that directory,
+        If `dir` is specified, the file will be created in that directory,
         otherwise a default directory is used.
 
-        If 'text' is specified and true, the file is opened in text
-        mode.  Else (the default) the file is opened in binary mode.  On
-        some operating systems, this makes no difference.
+        If `text` is specified and true, the file is opened in text mode. Else
+        (the default) the file is opened in binary mode.  On some operating
+        systems, this makes no difference.
 
         The file is readable and writable only by the creating user ID.
         If the operating system uses permission bits to indicate whether a
@@ -384,7 +385,7 @@ class Path(DefaultAbstractPath):
     def tempdir(cls, suffix='', prefix=None, dir=None):
         """Returns a new temporary directory.
 
-        Arguments are as for tempfile, except that the 'text' argument is
+        Arguments are as for tempfile, except that the `text` argument is
         not accepted.
 
         The directory is readable, writable, and searchable only by the
@@ -408,8 +409,8 @@ class Path(DefaultAbstractPath):
         Note that these paths might be both relative, in which case they'll be
         assumed to be considered starting from the same directory.
 
-        Contrary to AbstractPath's version, this will also work if one path
-        is relative and the other absolute.
+        Contrary to :class:`~rpaths.AbstractPath`'s version, this will also
+        work if one path is relative and the other absolute.
         """
         return self.absolute().rel_path_to(dest.absolute())
 
@@ -428,14 +429,14 @@ class Path(DefaultAbstractPath):
     def listdir(self):
         """Returns a list of all the files in this directory.
 
-        The special entries '.' and '..' will not be returned.
+        The special entries ``'.'`` and ``'..'`` will not be returned.
         """
         return [self / self.__class__(p) for p in os.listdir(self.path)]
 
     def recursedir(self, top_down=True):
         """Recursively lists all files under this directory.
 
-        Links will be walked but files will never be duplicated.
+        Symbolic links will be walked but files will never be duplicated.
         """
         return self._recursedir(top_down=top_down, seen=set())
 
@@ -457,7 +458,8 @@ class Path(DefaultAbstractPath):
                     yield grandkid
 
     def exists(self):
-        """True if the file exists, except for broken symlink where it's False.
+        """True if the file exists, except for broken symlinks where it's
+        False.
         """
         return self._lib.exists(self.path)
 
@@ -510,7 +512,7 @@ class Path(DefaultAbstractPath):
         return self._lib.getmtime(self.path)
 
     def size(self):
-        """Returns the size, in bytes, of path.
+        """Returns the size, in bytes, of the file.
         """
         return self._lib.getsize(self.path)
 
@@ -534,7 +536,7 @@ class Path(DefaultAbstractPath):
 
     if hasattr(os, 'chmod'):
         def chmod(self, mode):
-            """Changes the mode of the path to the given numeric mode.
+            """Changes the mode of the path to the given numeric `mode`.
             """
             return os.chmod(self.path, mode)
 
@@ -562,7 +564,7 @@ class Path(DefaultAbstractPath):
     def rmdir(self, parents=False):
         """Removes this directory, provided it is empty.
 
-        Use rmtree if it might still contain files.
+        Use :func:`~rpaths.Path.rmtree` if it might still contain files.
 
         If parents is True, it will also destroy every empty directory above it
         until an error is encountered.
@@ -613,35 +615,39 @@ class Path(DefaultAbstractPath):
                 return p
 
     def copyfile(self, target):
-        """Copies this file to the given target location.
+        """Copies this file to the given `target` location.
         """
         shutil.copyfile(self.path, self._to_backend(target))
 
     def copymode(self, target):
-        """Copies the mode of this file on the target file.
+        """Copies the mode of this file on the `target` file.
 
         The owner is not copied.
         """
         shutil.copymode(self.path, self._to_backend(target))
 
     def copystat(self, target):
-        """Copies the permissions, times and flags from this to the target.
+        """Copies the permissions, times and flags from this to the `target`.
 
         The owner is not copied.
         """
         shutil.copystat(self.path, self._to_backend(target))
 
     def copy(self, target):
-        """Copies this file the target, which might be a directory.
+        """Copies this file the `target`, which might be a directory.
 
         The permissions are copied.
         """
         shutil.copy(self.path, self._to_backend(target))
 
     def copytree(self, target, symlinks=False):
-        """Recursively copies this directory to the target location.
+        """Recursively copies this directory to the `target` location.
 
         The permissions and times are copied (like copystat).
+
+        If the optional `symlinks` flag is true, symbolic links in the source
+        tree result in symbolic links in the destination tree; if it is false,
+        the contents of the files pointed to by symbolic links are copied.
         """
         shutil.copytree(self.path, self._to_backend(target), symlinks)
 

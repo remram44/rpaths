@@ -23,22 +23,24 @@ Classes
 rpaths is organized in two levels. It offers abstract path representations,
 which only perform parsing/string manipulation and don't actually perform any
 operation on a file system. When dealing with abstract paths, nothing stops you
-from manipulation POSIX paths on a Windows host and vice-versa.
+from manipulating POSIX paths on a Windows host and vice-versa.
 
-On top of these abstract paths comes the concrete ``Path`` class, which
-represents the native type for the current system. It inherits from the correct
-abstract class, and adds the actual system operations allowing you to resolve,
-list, create or remove files.
+On top of these abstract paths comes the concrete :class:`~rpaths.Path` class,
+which represents the native type for the current system. It inherits from the
+correct abstract class, and adds the actual system operations allowing you to
+resolve, list, create or remove files.
 
-Note that, contrary to other path libraries, none of this types inherits from
+Note that, contrary to other path libraries, none of these types inherits from
 a built-in string class. However, you can build them from strings in a variety
-of ways and repr() or cast them how you'd expect.
+of ways and :func:`repr`, :func:`bytes` and :func:`unicode` will behave how you
+can expect.
 
 Abstract classes
 ''''''''''''''''
 
-Abstract path behavior is defined by the AbstractPath class. You shouldn't use
-that directly, use PosixPath and WindowsPath which are its implementations.
+Abstract path behavior is defined by the :class:`~rpaths.AbstractPath` class.
+You shouldn't use that directly, use :class:`~rpaths.PosixPath` and
+:class:`~rpaths.WindowsPath` which are its implementations.
 
 .. autoclass:: rpaths.AbstractPath
    :members:
