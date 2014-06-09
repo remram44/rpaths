@@ -595,8 +595,8 @@ class Path(DefaultAbstractPath):
     def rename(self, new, parents=False):
         """Renames this path to the given new location.
 
-        If parents is True, it will create the parent directories of the target
-        if they don't exist.
+        If `parents` is True, it will create the parent directories of the
+        target if they don't exist.
         """
         if parents:
             os.renames(self.path, self._to_backend(new))
@@ -605,13 +605,13 @@ class Path(DefaultAbstractPath):
 
     if hasattr(os, 'link'):
         def hardlink(self, newpath):
-            """Creates a hard link to this path at the given location.
+            """Creates a hard link to this path at the given `newpath`.
             """
             os.link(self.path, self._to_backend(newpath))
 
     if hasattr(os, 'symlink'):
         def symlink(self, target):
-            """Create a symbolic link here, pointing to the given target.
+            """Create a symbolic link here, pointing to the given `target`.
             """
             os.symlink(self._to_backend(target), self.path)
 
@@ -619,7 +619,7 @@ class Path(DefaultAbstractPath):
         def read_link(self, absolute=False):
             """Returns the path this link points to.
 
-            If absolute is True, the target is made absolute.
+            If `absolute` is True, the target is made absolute.
             """
             p = self.__class__(os.readlink(self.path))
             if absolute:
