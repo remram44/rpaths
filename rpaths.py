@@ -80,8 +80,12 @@ class AbstractPath(object):
         that if two paths are equal, they represent the same file, but the
         opposite might not be true.
         """
-        return (self._lib.normcase(self.path) ==
-                self._lib.normcase(self._to_backend(other)))
+        try:
+            other = self._to_backend(other)
+        except TypeError:
+            return False
+        else:
+            return (self._lib.normcase(self.path) == self._lib.normcase(other))
 
     def __ne__(self, other):
         """Compares two paths.
