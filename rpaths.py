@@ -1,4 +1,5 @@
 import contextlib
+import io
 import ntpath
 import os
 import posixpath
@@ -677,12 +678,15 @@ class Path(DefaultAbstractPath):
         """
         shutil.move(self.path, self._to_backend(target))
 
-    def open(self, mode='r', name=None):
+    def open(self, mode='r', name=None, **kwargs):
         """Opens this file, or a file under this directory.
 
         ``path.open(mode, name)`` is a shortcut for ``(path/name).open(mode)``.
+
+        Note that this uses :func:`io.open()` which behaves differently from
+        :func:`open()` on Python 2; see the appropriate documentation.
         """
         if name is not None:
-            return open((self / name).path, mode)
+            return io.open((self / name).path, mode=mode, **kwargs)
         else:
-            return open(self.path, mode)
+            return io.open(self.path, mode=mode, **kwargs)
