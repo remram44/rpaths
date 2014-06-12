@@ -3,7 +3,14 @@ try:
 except ImportError:
     import unittest
 
-from rpaths import unicode, PY3, PosixPath, WindowsPath
+from rpaths import unicode, PY3, AbstractPath, PosixPath, WindowsPath
+
+
+class TestAbstract(unittest.TestCase):
+    def test_construct(self):
+        """Tests building an AbstractPath."""
+        with self.assertRaises(RuntimeError):
+            AbstractPath('path/to/something')
 
 
 class TestWindows(unittest.TestCase):
