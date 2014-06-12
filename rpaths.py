@@ -33,6 +33,8 @@ class AbstractPath(object):
     This represents a path on a system that may not be the current one. It
     doesn't provide any way to actually interact with the local file system.
     """
+    _lib = None
+
     def _to_backend(self, p):
         """Converts something to the correct path representation.
 
