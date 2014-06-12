@@ -8,6 +8,8 @@ import sys
 import tempfile
 
 
+__all__ = ["unicode", "Path", "PY3", "PosixPath", "WindowsPath"]
+
 __version__ = '0.3'
 
 
