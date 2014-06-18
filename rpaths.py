@@ -88,18 +88,63 @@ class AbstractPath(object):
         try:
             other = self._to_backend(other)
         except TypeError:
-            return False
+            return NotImplemented
         else:
             return (self._lib.normcase(self.path) == self._lib.normcase(other))
 
+    # functools.total_ordering is broken (cf http://bugs.python.org/issue10042)
+    # so we don't use it
+
     def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
         """Compares two paths.
 
-        This will ignore the case on systems where it is not relevant. Note
-        that if two paths are equal, they represent the same file, but the
-        opposite might not be true.
+        This will ignore the case on systems where it is not relevant.
         """
-        return not self.__eq__(other)
+        try:
+            other = self._to_backend(other)
+        except TypeError:
+            return NotImplemented
+        else:
+            return self._lib.normcase(self.path) < self._lib.normcase(other)
+
+    def __le__(self, other):
+        """Compares two paths.
+
+        This will ignore the case on systems where it is not relevant.
+        """
+        try:
+            other = self._to_backend(other)
+        except TypeError:
+            return NotImplemented
+        else:
+            return self._lib.normcase(self.path) <= self._lib.normcase(other)
+
+    def __gt__(self, other):
+        """Compares two paths.
+
+        This will ignore the case on systems where it is not relevant.
+        """
+        try:
+            other = self._to_backend(other)
+        except TypeError:
+            return NotImplemented
+        else:
+            return self._lib.normcase(self.path) > self._lib.normcase(other)
+
+    def __ge__(self, other):
+        """Compares two paths.
+
+        This will ignore the case on systems where it is not relevant.
+        """
+        try:
+            other = self._to_backend(other)
+        except TypeError:
+            return NotImplemented
+        else:
+            return self._lib.normcase(self.path) >= self._lib.normcase(other)
 
     def __hash__(self):
         return hash(self._lib.normcase(self.path))

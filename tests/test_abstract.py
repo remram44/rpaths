@@ -124,7 +124,7 @@ class TestWindows(unittest.TestCase):
             WindowsPath(u'C:\\mydir\\').rel_path_to(PosixPath('/tmp/file'))
 
     def test_lies_under(self):
-        """ Tests the lies_under method."""
+        """Tests the lies_under method."""
         self.assertTrue(WindowsPath(u'\\tmp')
                         .lies_under(u'\\'))
         self.assertFalse(WindowsPath(u'C:\\tmp')
@@ -153,6 +153,21 @@ class TestWindows(unittest.TestCase):
                          .lies_under(u'test'))
         self.assertFalse(WindowsPath(u'test')
                          .lies_under(u'\\'))
+
+    def test_comparisons(self):
+        """Tests the comparison operators."""
+        self.assertTrue(WindowsPath(u'\\tmp') == WindowsPath(u'\\tmp'))
+        self.assertFalse(WindowsPath(u'C:\\file') != u'c:\\FILE')
+        self.assertTrue(u'c:\\FILE' == WindowsPath(u'C:\\file'))
+        self.assertFalse(WindowsPath(u'C:\\file') == WindowsPath(u'C:\\dir'))
+        self.assertFalse(WindowsPath('some/file') == PosixPath('some/file'))
+
+        self.assertTrue(WindowsPath(u'path/to/file1') < u'path/to/file2')
+        self.assertFalse(u'path/to/file1' >= WindowsPath(u'path/to/file2'))
+
+        if PY3:
+            with self.assertRaises(TypeError):
+                WindowsPath('some/file') < PosixPath('other/file')
 
 
 class TestPosix(unittest.TestCase):
@@ -281,3 +296,17 @@ class TestPosix(unittest.TestCase):
                          .lies_under(b'test'))
         self.assertFalse(PosixPath(b'test')
                          .lies_under(b'/'))
+
+    def test_comparisons(self):
+        """Tests the comparison operators."""
+        self.assertTrue(PosixPath(b'/tmp/r\xE9mi') == b'/tmp/r\xE9mi')
+        self.assertTrue(PosixPath(b'/file') != b'/FILE')
+        self.assertFalse(PosixPath(b'file') == PosixPath(b'dir'))
+        self.assertFalse(WindowsPath('some/file') == PosixPath('some/file'))
+
+        self.assertTrue(PosixPath(b'path/to/file1') < b'path/to/file2')
+        self.assertFalse(b'path/to/file1' >= PosixPath(b'path/to/file2'))
+
+        if PY3:
+            with self.assertRaises(TypeError):
+                WindowsPath('some/file') < PosixPath('other/file')
