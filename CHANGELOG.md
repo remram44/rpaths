@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.4 (2014-06-19)
+----------------
+
+Bugfixes:
+* Adds missing `__all__` lists
+* Actually prevents the creation of `AbstractPath` directly (thanks to VnC-)
+
+Features:
+* Adds comparison operators
+
 0.3 (2014-06-11)
 ----------------
 
