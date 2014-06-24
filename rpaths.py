@@ -1,4 +1,5 @@
 import contextlib
+import fnmatch
 import io
 import ntpath
 import os
@@ -489,35 +490,45 @@ class Path(DefaultAbstractPath):
         """
         return self.__class__(self._lib.realpath(self.path))
 
-    def listdir(self):
+    def listdir(self, pattern=None):
         """Returns a list of all the files in this directory.
 
         The special entries ``'.'`` and ``'..'`` will not be returned.
         """
-        return [self / self.__class__(p) for p in os.listdir(self.path)]
+        files = os.listdir(self.path)
+        if pattern is not None:
+            if callable(pattern):
+                files = filter(pattern, files)
+            elif isinstance(pattern, backend_types):
+                files = fnmatch.filter(files, self._to_backend(pattern))
+            else:
+                raise TypeError("listdir() expects pattern to be a callable, "
+                                "a regular expression or a string pattern, "
+                                "got %r" % type(pattern))
+        return [self / self.__class__(p) for p in files]
 
-    def recursedir(self, top_down=True):
+    def recursedir(self, pattern=None, top_down=True):
         """Recursively lists all files under this directory.
 
         Symbolic links will be walked but files will never be duplicated.
         """
-        return self._recursedir(top_down=top_down, seen=set())
+        return self._recursedir(pattern=pattern, top_down=top_down, seen=set())
 
-    def _recursedir(self, top_down, seen):
+    def _recursedir(self, pattern, top_down, seen):
         if not self.is_dir():
             raise ValueError("recursedir() called on non-directory %s" % self)
         real_dir = self.resolve()
         if real_dir in seen:
             return
         seen.add(real_dir)
-        for child in self.listdir():
+        for child in self.listdir(pattern):
             is_dir = child.is_dir()
             if is_dir and not top_down:
-                for grandkid in child._recursedir(top_down, seen):
+                for grandkid in child._recursedir(pattern, top_down, seen):
                     yield grandkid
             yield child
             if is_dir and top_down:
-                for grandkid in child._recursedir(top_down, seen):
+                for grandkid in child._recursedir(pattern, top_down, seen):
                     yield grandkid
 
     def exists(self):
