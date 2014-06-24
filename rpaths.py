@@ -781,5 +781,18 @@ class Path(DefaultAbstractPath):
 
 
 def pattern2re(pattern):
+    """Makes a regular expression from a pattern.
+
+    This uses extended patterns, where:
+     * a slash '/' always represents the path separator
+     * a backslash '\' escapes other special characters
+     * an initial slash '/' anchors the match at the beginning of the
+       (relative) path
+     * a trailing '/' suffix is removed
+     * a '*'  matches a sequence of any length (including 0) of any characters
+       (except the path separator)
+     * a '?' matches exactly one character (except the path separator)
+     * '[abc]' matches characters 'a', 'b' or 'c'
+     * '{ab,cd}' matches the sequence 'ab' or the sequence 'cd'
+    """
     # TODO
-    pass
