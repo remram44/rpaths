@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 try:
     import unittest2 as unittest
@@ -95,6 +96,13 @@ class TestLists(unittest.TestCase):
             expected = [u'file', u'r\xE9mi\'s thing', u'r\xE9pertoire']
         self.compare_paths(l1, expected, self.tmp)
 
+        l1f = list(self.tmp.listdir('*e'))
+        if issubclass(Path, PosixPath):
+            expected = [b'file', b'r\xC3\xA9pertoire']
+        else:
+            expected = [u'file', u'r\xE9pertoire']
+        self.compare_paths(l1f, expected, self.tmp)
+
         p2 = self.tmp / u'r\xE9pertoire'
         l2 = list(p2.listdir())
         if issubclass(Path, PosixPath):
@@ -102,6 +110,20 @@ class TestLists(unittest.TestCase):
         else:
             expected = [u'file', u'nested', u'last']
         self.compare_paths(l2, expected, p2)
+
+        l2f = list(p2.listdir('*e'))
+        if issubclass(Path, PosixPath):
+            expected = [b'file']
+        else:
+            expected = [u'file']
+        self.compare_paths(l2f, expected, p2)
+
+        l2r = list(p2.listdir(re.compile(r'^[a-z]{4}$')))
+        if issubclass(Path, PosixPath):
+            expected = [b'file', b'last']
+        else:
+            expected = [u'file', u'last']
+        self.compare_paths(l2r, expected, p2)
 
     def test_recursedir(self):
         """Uses recursedir to list a hierarchy."""
@@ -115,3 +137,13 @@ class TestLists(unittest.TestCase):
                         u'r\xE9pertoire\\file', u'r\xE9pertoire\\last',
                         u'r\xE9pertoire\\nested']
         self.compare_paths(l, expected, self.tmp)
+        self.compare_paths(list(self.tmp.recursedir('*')), expected, self.tmp)
+
+        lf = list(self.tmp.recursedir('*e'))
+        if issubclass(Path, PosixPath):
+            expected = [b'file', b'r\xC3\xA9pertoire',
+                        b'r\xC3\xA9pertoire/file']
+        else:
+            expected = [u'file', u'r\xE9pertoire',
+                        u'r\xE9pertoire\\file']
+        self.compare_paths(lf, expected, self.tmp)
