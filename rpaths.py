@@ -4,7 +4,6 @@ import io
 import ntpath
 import os
 import posixpath
-import re
 import shutil
 import sys
 import tempfile
@@ -22,9 +21,6 @@ if PY3:
 else:
     unicode = unicode
 backend_types = (unicode, bytes)
-
-
-re_type = type(re.compile(''))
 
 
 def supports_unicode_filenames(lib):
@@ -503,8 +499,6 @@ class Path(DefaultAbstractPath):
         if pattern is not None:
             if callable(pattern):
                 files = filter(pattern, files)
-            elif re_type is not None and isinstance(pattern, re_type):
-                files = filter(pattern.search, files)
             elif isinstance(pattern, backend_types):
                 files = fnmatch.filter(files, self._to_backend(pattern))
             else:

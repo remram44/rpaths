@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 try:
     import unittest2 as unittest
@@ -117,13 +116,6 @@ class TestLists(unittest.TestCase):
         else:
             expected = [u'file']
         self.compare_paths(l2f, expected, p2)
-
-        l2r = list(p2.listdir(re.compile(r'^[a-z]{4}$')))
-        if issubclass(Path, PosixPath):
-            expected = [b'file', b'last']
-        else:
-            expected = [u'file', u'last']
-        self.compare_paths(l2r, expected, p2)
 
     def test_recursedir(self):
         """Uses recursedir to list a hierarchy."""
