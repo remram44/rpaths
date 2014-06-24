@@ -1,5 +1,4 @@
 import contextlib
-import fnmatch
 import io
 import ntpath
 import os
@@ -506,7 +505,8 @@ class Path(DefaultAbstractPath):
             elif re_type is not None and isinstance(pattern, re_type):
                 files = filter(pattern.search, files)
             elif isinstance(pattern, backend_types):
-                files = fnmatch.filter(files, self._to_backend(pattern))
+                files = filter(pattern2re(self._to_backend(pattern)).search,
+                               files)
             else:
                 raise TypeError("listdir() expects pattern to be a callable, "
                                 "a regular expression or a string pattern, "
@@ -518,23 +518,45 @@ class Path(DefaultAbstractPath):
 
         Symbolic links will be walked but files will never be duplicated.
         """
-        return self._recursedir(pattern=pattern, top_down=top_down, seen=set())
+        if pattern is None:
+            pattern = lambda p: True
+        elif callable(pattern):
+            pass
+        elif re_type is not None and isinstance(pattern, re_type):
+            pattern = pattern.search
+        elif isinstance(pattern, backend_types):
+            pattern = pattern2re(pattern).search
+        else:
+            raise TypeError("recursedir() expects pattern to be a callable, "
+                            "a regular expression or a string pattern, got "
+                            "%r" % type(pattern))
+        if pattern(self.path):
+            return self._recursedir(pattern=pattern, top_down=top_down,
+                                    seen=set(), path=self.__class__(''))
+        else:
+            return iter([])
 
-    def _recursedir(self, pattern, top_down, seen):
+    def _recursedir(self, pattern, top_down, seen, path):
         if not self.is_dir():
             raise ValueError("recursedir() called on non-directory %s" % self)
         real_dir = self.resolve()
         if real_dir in seen:
             return
         seen.add(real_dir)
-        for child in self.listdir(pattern):
+        for child in os.listdir(self.path):
+            newpath = (path / child)
+            if not pattern(newpath.path):
+                continue
+            child = self / child
             is_dir = child.is_dir()
             if is_dir and not top_down:
-                for grandkid in child._recursedir(pattern, top_down, seen):
+                for grandkid in child._recursedir(pattern, top_down, seen,
+                                                  newpath):
                     yield grandkid
             yield child
             if is_dir and top_down:
-                for grandkid in child._recursedir(pattern, top_down, seen):
+                for grandkid in child._recursedir(pattern, top_down, seen,
+                                                  newpath):
                     yield grandkid
 
     def exists(self):
@@ -756,3 +778,8 @@ class Path(DefaultAbstractPath):
             return io.open((self / name).path, mode=mode, **kwargs)
         else:
             return io.open(self.path, mode=mode, **kwargs)
+
+
+def pattern2re(pattern):
+    # TODO
+    pass
