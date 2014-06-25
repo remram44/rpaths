@@ -3,7 +3,6 @@ import io
 import ntpath
 import os
 import posixpath
-import re
 import shutil
 import sys
 import tempfile
@@ -21,9 +20,6 @@ if PY3:
 else:
     unicode = unicode
 backend_types = (unicode, bytes)
-
-
-re_type = type(re.compile(''))
 
 
 def supports_unicode_filenames(lib):
@@ -499,18 +495,16 @@ class Path(DefaultAbstractPath):
         The special entries ``'.'`` and ``'..'`` will not be returned.
         """
         files = os.listdir(self.path)
-        if pattern is not None:
-            if callable(pattern):
-                files = filter(pattern, files)
-            elif re_type is not None and isinstance(pattern, re_type):
-                files = filter(pattern.search, files)
-            elif isinstance(pattern, backend_types):
-                files = filter(pattern2re(self._to_backend(pattern)).search,
-                               files)
-            else:
-                raise TypeError("listdir() expects pattern to be a callable, "
-                                "a regular expression or a string pattern, "
-                                "got %r" % type(pattern))
+        if pattern is None:
+            pass
+        elif callable(pattern):
+            return filter(pattern, [self / self.__class__(p) for p in files])
+        elif isinstance(pattern, backend_types):
+            files = filter(pattern2re(self._to_backend(pattern)).search, files)
+        else:
+            raise TypeError("listdir() expects pattern to be a callable, "
+                            "a regular expression or a string pattern, "
+                            "got %r" % type(pattern))
         return [self / self.__class__(p) for p in files]
 
     def recursedir(self, pattern=None, top_down=True):
@@ -522,8 +516,6 @@ class Path(DefaultAbstractPath):
             pattern = lambda p: True
         elif callable(pattern):
             pass
-        elif re_type is not None and isinstance(pattern, re_type):
-            pattern = pattern.search
         elif isinstance(pattern, backend_types):
             pattern = pattern2re(pattern).search
         else:
