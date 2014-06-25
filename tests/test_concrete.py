@@ -102,6 +102,13 @@ class TestLists(unittest.TestCase):
             expected = [u'file', u'r\xE9pertoire']
         self.compare_paths(l1f, expected, self.tmp)
 
+        l1d = list(self.tmp.listdir(lambda p: p.is_dir()))
+        if issubclass(Path, PosixPath):
+            expected = [b'r\xC3\xA9pertoire']
+        else:
+            expected = [u'r\xE9pertoire']
+        self.compare_paths(l1d, expected, self.tmp)
+
         p2 = self.tmp / u'r\xE9pertoire'
         l2 = list(p2.listdir())
         if issubclass(Path, PosixPath):
