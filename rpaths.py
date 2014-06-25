@@ -496,15 +496,16 @@ class Path(DefaultAbstractPath):
         The special entries ``'.'`` and ``'..'`` will not be returned.
         """
         files = os.listdir(self.path)
-        if pattern is not None:
-            if callable(pattern):
-                files = filter(pattern, files)
-            elif isinstance(pattern, backend_types):
-                files = fnmatch.filter(files, self._to_backend(pattern))
-            else:
-                raise TypeError("listdir() expects pattern to be a callable, "
-                                "a regular expression or a string pattern, "
-                                "got %r" % type(pattern))
+        if pattern is None:
+            pass
+        elif callable(pattern):
+            return filter(pattern, [self / self.__class__(p) for p in files])
+        elif isinstance(pattern, backend_types):
+            files = fnmatch.filter(files, self._to_backend(pattern))
+        else:
+            raise TypeError("listdir() expects pattern to be a callable, "
+                            "a regular expression or a string pattern, "
+                            "got %r" % type(pattern))
         return [self / self.__class__(p) for p in files]
 
     def recursedir(self, pattern=None, top_down=True):
