@@ -3,6 +3,7 @@ import io
 import ntpath
 import os
 import posixpath
+import re
 import shutil
 import sys
 import tempfile
@@ -494,18 +495,21 @@ class Path(DefaultAbstractPath):
 
         The special entries ``'.'`` and ``'..'`` will not be returned.
         """
-        files = os.listdir(self.path)
+        files = [self / self.__class__(p) for p in os.listdir(self.path)]
         if pattern is None:
             pass
         elif callable(pattern):
-            return filter(pattern, [self / self.__class__(p) for p in files])
+            files = filter(pattern, files)
         elif isinstance(pattern, backend_types):
-            files = filter(pattern2re(self._to_backend(pattern)).search, files)
+            if isinstance(pattern, bytes):
+                pattern = pattern.decode(self._encoding, 'replace')
+            p_re = pattern2re(pattern)
+            files = [f for f in files if p_re.search(f.unicodename)]
         else:
             raise TypeError("listdir() expects pattern to be a callable, "
                             "a regular expression or a string pattern, "
                             "got %r" % type(pattern))
-        return [self / self.__class__(p) for p in files]
+        return files
 
     def recursedir(self, pattern=None, top_down=True):
         """Recursively lists all files under this directory.
@@ -517,16 +521,20 @@ class Path(DefaultAbstractPath):
         elif callable(pattern):
             pass
         elif isinstance(pattern, backend_types):
-            pattern = pattern2re(pattern).search
+            if isinstance(pattern, bytes):
+                pattern = pattern.decode(self._encoding, 'replace')
+            p_re = pattern2re(pattern)
+            if self._lib.sep != u'/':
+                pattern = lambda p: p_re.search(
+                        unicode(p).replace(self._lib.sep, u'/'))
+            else:
+                pattern = lambda p: p_re.search(unicode(p))
         else:
             raise TypeError("recursedir() expects pattern to be a callable, "
                             "a regular expression or a string pattern, got "
                             "%r" % type(pattern))
-        if pattern(self.path):
-            return self._recursedir(pattern=pattern, top_down=top_down,
-                                    seen=set(), path=self.__class__(''))
-        else:
-            return iter([])
+        return self._recursedir(pattern=pattern, top_down=top_down,
+                                seen=set(), path=self.__class__(''))
 
     def _recursedir(self, pattern, top_down, seen, path):
         if not self.is_dir():
@@ -536,16 +544,15 @@ class Path(DefaultAbstractPath):
             return
         seen.add(real_dir)
         for child in os.listdir(self.path):
-            newpath = (path / child)
-            if not pattern(newpath.path):
-                continue
+            newpath = path / child
             child = self / child
             is_dir = child.is_dir()
             if is_dir and not top_down:
                 for grandkid in child._recursedir(pattern, top_down, seen,
                                                   newpath):
                     yield grandkid
-            yield child
+            if pattern(newpath):
+                yield child
             if is_dir and top_down:
                 for grandkid in child._recursedir(pattern, top_down, seen,
                                                   newpath):
@@ -773,7 +780,7 @@ class Path(DefaultAbstractPath):
 
 
 def pattern2re(pattern):
-    """Makes a regular expression from a pattern.
+    """Makes a unicode regular expression from a pattern.
 
     This uses extended patterns, where:
      * a slash '/' always represents the path separator
@@ -781,10 +788,56 @@ def pattern2re(pattern):
      * an initial slash '/' anchors the match at the beginning of the
        (relative) path
      * a trailing '/' suffix is removed
-     * a '*'  matches a sequence of any length (including 0) of any characters
-       (except the path separator)
+     * an asterisk '*'  matches a sequence of any length (including 0) of any
+       characters (except the path separator)
      * a '?' matches exactly one character (except the path separator)
      * '[abc]' matches characters 'a', 'b' or 'c'
-     * '{ab,cd}' matches the sequence 'ab' or the sequence 'cd'
+     * two asterisks '**' matches one or more path components (might match '/'
+       characters)
     """
-    # TODO
+    pattern_segs = filter(None, pattern.split(u'/'))
+
+    # This anchors the first component either at the start of the string or at
+    # the start of a path component
+    if not pattern:
+        return re.compile('')
+    elif '/' in pattern:
+        regex = '^'  # Start at beginning of path
+    else:
+        regex = '(?:^|/)'  # Skip any number of full components
+
+    # Handles each component
+    for pnum, pat in enumerate(pattern_segs):
+        i, n = 0, len(pat)
+        # The first component is already anchored
+        if pnum > 0:
+            regex += '/'
+        if pat == '**':
+            regex += '.*'
+            continue
+        while i < n:
+            c = pat[i]
+            if c == '\\':
+                i += 1
+                if i < n:
+                    regex += re.escape(pat[i])
+            elif c == '*':
+                regex += '[^/]*'
+            elif c == '?':
+                regex += '[^/]'
+            elif c == '[':
+                i += 1
+                regex += '['
+                c = pat[i]
+                while c != ']':
+                    if c == '/':
+                        raise ValueError("Slashes not accepted in [] classes")
+                    regex += re.escape(c)
+                    i += 1
+                    c = pat[i]
+                regex += ']'
+            else:
+                regex += re.escape(c)
+            i += 1
+    regex = regex.rstrip('/') + '$'
+    return re.compile(regex)
