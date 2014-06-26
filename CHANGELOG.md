@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.5 (2014-06-26)
+----------------
+
+Features:
+* Adds `pattern` parameter to `listdir()` and `recursedir()`
+
 0.4 (2014-06-19)
 ----------------
 
