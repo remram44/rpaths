@@ -526,9 +526,9 @@ class Path(DefaultAbstractPath):
             if isinstance(pattern, bytes):
                 pattern = pattern.decode(self._encoding, 'replace')
             p_re = pattern2re(pattern)
-            if self._lib.sep != u'/':
+            if self._lib.sep != '/':
                 pattern = lambda p: p_re.search(
-                        unicode(p).replace(self._lib.sep, u'/'))
+                        unicode(p).replace(self._lib.sep, '/'))
             else:
                 pattern = lambda p: p_re.search(unicode(p))
         else:
@@ -797,7 +797,7 @@ def pattern2re(pattern):
      * two asterisks '**' matches one or more path components (might match '/'
        characters)
     """
-    pattern_segs = filter(None, pattern.split(u'/'))
+    pattern_segs = filter(None, pattern.split('/'))
 
     # This anchors the first component either at the start of the string or at
     # the start of a path component
