@@ -218,6 +218,25 @@ class TestPattern2Re(unittest.TestCase):
                  ('some?file*.txt', True),
                  ('some?filename.txt', False),
                  ('some?file*.txt', True)])
+        self.do_test_pattern(
+                r'**/file',
+                [('file', False),
+                 ('path/file', True),
+                 ('path/to/file', True),
+                 ('not/afile', False)])
+        self.do_test_pattern(
+                r'path/**/file',
+                [('path/to/file', True),
+                 ('path/file', False),
+                 ('path/file', False),
+                 ('path/to/a/file', True),
+                 ('pathto/a/file', False),
+                 ('path/to/afile', False)])
+        self.do_test_pattern(
+                r'path/**',
+                [('path', False),
+                 ('path/file', True),
+                 ('path/to/file', True)])
 
     def test_classes(self):
         self.do_test_pattern(
