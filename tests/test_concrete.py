@@ -60,8 +60,8 @@ class TestLists(unittest.TestCase):
         """Builds a test hierarchy."""
         cls.tmp = Path.tempdir()
         cls.tmp.open('w', 'file').close()
-        cls.tmp.open('w', u'r\xE9mi\'s thing').close()
-        d = cls.tmp.mkdir(u'r\xE9pertoire')
+        cls.tmp.open('w', 'r\xE9mi\'s thing').close()
+        d = cls.tmp.mkdir('r\xE9pertoire')
         d.open('w', 'file').close()
         d.mkdir('nested')
         if issubclass(Path, PosixPath):
@@ -94,36 +94,36 @@ class TestLists(unittest.TestCase):
         if issubclass(Path, PosixPath):
             expected = [b'file', b'r\xC3\xA9mi\'s thing', b'r\xC3\xA9pertoire']
         else:
-            expected = [u'file', u'r\xE9mi\'s thing', u'r\xE9pertoire']
+            expected = ['file', 'r\xE9mi\'s thing', 'r\xE9pertoire']
         self.compare_paths(l1, expected, self.tmp)
 
         l1f = list(self.tmp.listdir('*e'))
         if issubclass(Path, PosixPath):
             expected = [b'file', b'r\xC3\xA9pertoire']
         else:
-            expected = [u'file', u'r\xE9pertoire']
+            expected = ['file', 'r\xE9pertoire']
         self.compare_paths(l1f, expected, self.tmp)
 
         l1d = list(self.tmp.listdir(lambda p: p.is_dir()))
         if issubclass(Path, PosixPath):
             expected = [b'r\xC3\xA9pertoire']
         else:
-            expected = [u'r\xE9pertoire']
+            expected = ['r\xE9pertoire']
         self.compare_paths(l1d, expected, self.tmp)
 
-        p2 = self.tmp / u'r\xE9pertoire'
+        p2 = self.tmp / 'r\xE9pertoire'
         l2 = list(p2.listdir())
         if issubclass(Path, PosixPath):
             expected = [b'file', b'nested', b'last']
         else:
-            expected = [u'file', u'nested', u'last']
+            expected = ['file', 'nested', 'last']
         self.compare_paths(l2, expected, p2)
 
         l2f = list(p2.listdir('*e'))
         if issubclass(Path, PosixPath):
             expected = [b'file']
         else:
-            expected = [u'file']
+            expected = ['file']
         self.compare_paths(l2f, expected, p2)
 
     def test_recursedir(self):
@@ -134,9 +134,9 @@ class TestLists(unittest.TestCase):
                         b'r\xC3\xA9pertoire/file', b'r\xC3\xA9pertoire/last',
                         b'r\xC3\xA9pertoire/nested']
         else:
-            expected = [u'file', u'r\xE9mi\'s thing', u'r\xE9pertoire',
-                        u'r\xE9pertoire\\file', u'r\xE9pertoire\\last',
-                        u'r\xE9pertoire\\nested']
+            expected = ['file', 'r\xE9mi\'s thing', 'r\xE9pertoire',
+                        'r\xE9pertoire\\file', 'r\xE9pertoire\\last',
+                        'r\xE9pertoire\\nested']
         self.compare_paths(l, expected, self.tmp)
         self.compare_paths(list(self.tmp.recursedir('*')), expected, self.tmp)
 
@@ -145,8 +145,8 @@ class TestLists(unittest.TestCase):
             expected = [b'file', b'r\xC3\xA9pertoire',
                         b'r\xC3\xA9pertoire/file']
         else:
-            expected = [u'file', u'r\xE9pertoire',
-                        u'r\xE9pertoire\\file']
+            expected = ['file', 'r\xE9pertoire',
+                        'r\xE9pertoire\\file']
         self.compare_paths(lf, expected, self.tmp)
 
 
