@@ -5,7 +5,7 @@ try:
 except ImportError:
     import unittest
 
-from rpaths import unicode, Path, PosixPath, WindowsPath
+from rpaths import unicode, Path, PosixPath, WindowsPath, pattern2re
 
 
 windows_only = unittest.skipUnless(issubclass(Path, WindowsPath),
@@ -146,3 +146,111 @@ class TestLists(unittest.TestCase):
             expected = [u'file', u'r\xE9pertoire',
                         u'r\xE9pertoire\\file']
         self.compare_paths(lf, expected, self.tmp)
+
+
+class TestPattern2Re(unittest.TestCase):
+    """Tests the pattern2re() function, used to recognize extended patterns.
+    """
+    def do_test_pattern(self, pattern, tests):
+        r = pattern2re(pattern)
+        error = ''
+        for path, expected in tests:
+            passed = r.search(path)
+            if passed and not expected:
+                error += "\n%r matched %r" % (pattern, path)
+            elif not passed and expected:
+                error += "\n%r didn't match %r" % (pattern, path)
+        if error:
+            self.fail(error)
+
+    def test_components(self):
+        """Tests how components are handled, with '*', '**', '/'."""
+        self.do_test_pattern(
+                # Pattern does not contain a slash: only matches the filename,
+                # line fnmatch
+                r'*.txt',
+                [('test.txt', True),
+                 ('some/test.txt', True),
+                 ('.txt/file.png', False),
+                 ('not_a.txt/thing.txt.jpg', False)])
+        self.do_test_pattern(
+                # Pattern contains a slash: matches on the whole path
+                r'/*.txt',
+                [('test.txt', True),
+                 ('some/test.txt', False),
+                 ('.txt/file.png', False),
+                 ('not_a.txt/thing.txt.jpg', False)])
+        self.do_test_pattern(
+                # Note that trailing slash is ignored; do not use this...
+                r'mydir/*.txt/',
+                [('test.txt', False),
+                 ('some/dir/test.txt', False),
+                 ('some/path/mydir/test.txt', False),
+                 ('mydir/thing.txt', True),
+                 ('.txt/file.png', False),
+                 ('mydir/thing.txt.jpg', False)])
+        self.do_test_pattern(
+                # ** will match at least one component
+                r'**/mydir/*.txt',
+                [('test.txt', False),
+                 ('some/dir/test.txt', False),
+                 ('path/mydir/test.txt', True),
+                 ('path/notmydir/test.txt', False),
+                 ('some/path/mydir/test.txt', True),
+                 ('mydir/thing.txt', False),
+                 ('.txt/file.png', False),
+                 ('mydir/thing.txt.jpg', False)])
+        self.do_test_pattern('', [('file', True), ('other/thing/here', True)])
+
+    def test_wildcards(self):
+        self.do_test_pattern(
+                r'some?file*.txt',
+                [('somefile.txt', False),
+                 ('some file.txt', True),
+                 ('some;filename.txt', True),
+                 ('wowsome file.txt', False),
+                 ('some filename.txt.exe', False),
+                 ('some/filename.txt', False),
+                 ('some file/name.txt', False)])
+        self.do_test_pattern(
+                r'some\?file\*.txt',
+                [('some file*.txt', False),
+                 ('some?file*.txt', True),
+                 ('some?filename.txt', False),
+                 ('some?file*.txt', True)])
+        self.do_test_pattern(
+                r'**/file',
+                [('file', False),
+                 ('path/file', True),
+                 ('path/to/file', True),
+                 ('not/afile', False)])
+        self.do_test_pattern(
+                r'path/**/file',
+                [('path/to/file', True),
+                 ('path/file', False),
+                 ('path/file', False),
+                 ('path/to/a/file', True),
+                 ('pathto/a/file', False),
+                 ('path/to/afile', False)])
+        self.do_test_pattern(
+                r'path/**',
+                [('path', False),
+                 ('path/file', True),
+                 ('path/to/file', True)])
+
+    def test_classes(self):
+        self.do_test_pattern(
+                r'some[ ?a]file',
+                [('someafile', True),
+                 ('some file', True),
+                 ('some?file', True),
+                 ('some-file', False)])
+        self.do_test_pattern(
+                # This one is a bit weird and not very useful but helps
+                # prove that PCRE things get escaped correctly
+                r'some[[:alpha:]]file',
+                [('somea]file', True),
+                 ('some[]file', True),
+                 ('some:]file', True),
+                 ('someb]file', False),
+                 ('somebfile', False)])
