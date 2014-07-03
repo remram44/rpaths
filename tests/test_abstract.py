@@ -20,21 +20,21 @@ class TestWindows(unittest.TestCase):
     """
     def test_construct(self):
         """Tests building paths."""
-        self.assertEqual(WindowsPath(u'C:\\',
+        self.assertEqual(WindowsPath('C:\\',
                                      WindowsPath('some/dir'),
-                                     u'with',
+                                     'with',
                                      'files.txt').path,
-                         u'C:\\some\\dir\\with\\files.txt')
+                         'C:\\some\\dir\\with\\files.txt')
         with self.assertRaises(TypeError):
             WindowsPath(WindowsPath('C:\\somedir'), PosixPath('file.sh'))
-        self.assertEqual((WindowsPath(u'Users\\R\xE9mi/Desktop') /
+        self.assertEqual((WindowsPath('Users\\R\xE9mi/Desktop') /
                           WindowsPath(b'pictures/m\xE9chant.jpg')).path,
-                         u'Users\\R\xE9mi\\Desktop\\pictures\\m\xE9chant.jpg')
+                         'Users\\R\xE9mi\\Desktop\\pictures\\m\xE9chant.jpg')
 
     def test_str(self):
         """Tests getting string representations (repr/bytes/unicode)."""
-        latin = WindowsPath(u'C:\\r\xE9mi')
-        nonlatin = WindowsPath(u'C:\\you like\u203D.txt')
+        latin = WindowsPath('C:\\r\xE9mi')
+        nonlatin = WindowsPath('C:\\you like\u203D.txt')
         # repr()
         self.assertEqual(repr(latin),
                          "WindowsPath(u'C:\\\\r\\xe9mi')")
@@ -47,125 +47,125 @@ class TestWindows(unittest.TestCase):
                          b'C:\\you like?.txt')
         # unicode()
         self.assertEqual(unicode(latin),
-                         u'C:\\r\xe9mi')
+                         'C:\\r\xe9mi')
         self.assertEqual(unicode(nonlatin),
-                         u'C:\\you like\u203d.txt')
+                         'C:\\you like\u203d.txt')
 
     def test_parts(self):
         """Tests parent, ancestor, name, stem, ext."""
-        relative = WindowsPath(u'directory/users\\r\xE9mi/file.txt')
-        absolute = WindowsPath(u'\\some/other\\thing.h\xE9h\xE9')
+        relative = WindowsPath('directory/users\\r\xE9mi/file.txt')
+        absolute = WindowsPath('\\some/other\\thing.h\xE9h\xE9')
         self.assertEqual(relative.parent.path,
-                         u'directory\\users\\r\xE9mi')
+                         'directory\\users\\r\xE9mi')
         self.assertEqual(absolute.parent.path,
-                         u'\\some\\other')
+                         '\\some\\other')
         self.assertEqual(absolute.ancestor(10).path,
-                         u'\\')
-        self.assertEqual(relative.name, u'file.txt')
-        self.assertEqual(absolute.name, u'thing.h\xE9h\xE9')
-        self.assertEqual(absolute.unicodename, u'thing.h\xE9h\xE9')
-        self.assertEqual(absolute.stem, u'thing')
-        self.assertEqual(absolute.ext, u'.h\xE9h\xE9')
+                         '\\')
+        self.assertEqual(relative.name, 'file.txt')
+        self.assertEqual(absolute.name, 'thing.h\xE9h\xE9')
+        self.assertEqual(absolute.unicodename, 'thing.h\xE9h\xE9')
+        self.assertEqual(absolute.stem, 'thing')
+        self.assertEqual(absolute.ext, '.h\xE9h\xE9')
 
     def test_root(self):
         """Tests roots, drives and UNC shares."""
         a = WindowsPath(b'some/relative/path')
-        b = WindowsPath(u'alsorelative')
+        b = WindowsPath('alsorelative')
         c = WindowsPath(b'/this/is/absolute')
-        d = WindowsPath(u'C:\\')
+        d = WindowsPath('C:\\')
         e = WindowsPath(b'C:\\also/absolute')
-        f = WindowsPath(u'\\\\SOMEMACHINE\\share\\some\\file')
+        f = WindowsPath('\\\\SOMEMACHINE\\share\\some\\file')
 
         def split_root(f):
             return tuple(p.path for p in f.split_root())
 
         self.assertEqual(split_root(a),
-                         (u'.', u'some\\relative\\path'))
+                         ('.', 'some\\relative\\path'))
         self.assertEqual(split_root(b),
-                         (u'.', u'alsorelative'))
+                         ('.', 'alsorelative'))
         self.assertFalse(b.is_absolute)
         self.assertEqual(split_root(c),
-                         (u'\\', u'this\\is\\absolute'))
+                         ('\\', 'this\\is\\absolute'))
         self.assertTrue(c.is_absolute)
         self.assertEqual(split_root(d),
-                         (u'C:\\', u'.'))
+                         ('C:\\', '.'))
         self.assertTrue(d.is_absolute)
-        self.assertEqual(d.root.path, u'C:\\')
+        self.assertEqual(d.root.path, 'C:\\')
         self.assertEqual(split_root(e),
-                         (u'C:\\', u'also\\absolute'))
+                         ('C:\\', 'also\\absolute'))
         # FIXME : normpath() doesn't behave consistently: puts \ at the end on
         # PY3, not on PY2.
         self.assertIn(split_root(f),
-                      [(u'\\\\SOMEMACHINE\\share', u'some\\file'),
-                       (u'\\\\SOMEMACHINE\\share\\', u'some\\file')])
+                      [('\\\\SOMEMACHINE\\share', 'some\\file'),
+                       ('\\\\SOMEMACHINE\\share\\', 'some\\file')])
 
     def test_rel_path_to(self):
         """Tests the rel_path_to method."""
-        self.assertEqual(WindowsPath(u'\\var\\log\\apache2\\').rel_path_to(
-                         u'\\var\\www\\cat.jpg').path,
-                         u'..\\..\\www\\cat.jpg')
-        self.assertEqual(WindowsPath(u'C:\\var\\log\\apache2\\').rel_path_to(
-                         u'C:\\tmp\\access.log').path,
-                         u'..\\..\\..\\tmp\\access.log')
-        self.assertEqual(WindowsPath(u'var\\log').rel_path_to(
-                         u'var\\log\\apache2\\access.log').path,
-                         u'apache2\\access.log')
-        self.assertEqual(WindowsPath(u'\\var\\log\\apache2').rel_path_to(
-                         u'\\var\\log\\apache2').path,
-                         u'.')
-        self.assertEqual(WindowsPath(u'C:\\').rel_path_to(
-                         u'C:\\var\\log\\apache2\\access.log').path,
-                         u'var\\log\\apache2\\access.log')
-        self.assertEqual(WindowsPath(u'\\tmp\\secretdir\\').rel_path_to(
-                         u'\\').path,
-                         u'..\\..')
-        self.assertEqual(WindowsPath(u'C:\\tmp\\secretdir\\').rel_path_to(
-                         u'D:\\other\\file.txt').path,
-                         u'D:\\other\\file.txt')
+        self.assertEqual(WindowsPath('\\var\\log\\apache2\\').rel_path_to(
+                         '\\var\\www\\cat.jpg').path,
+                         '..\\..\\www\\cat.jpg')
+        self.assertEqual(WindowsPath('C:\\var\\log\\apache2\\').rel_path_to(
+                         'C:\\tmp\\access.log').path,
+                         '..\\..\\..\\tmp\\access.log')
+        self.assertEqual(WindowsPath('var\\log').rel_path_to(
+                         'var\\log\\apache2\\access.log').path,
+                         'apache2\\access.log')
+        self.assertEqual(WindowsPath('\\var\\log\\apache2').rel_path_to(
+                         '\\var\\log\\apache2').path,
+                         '.')
+        self.assertEqual(WindowsPath('C:\\').rel_path_to(
+                         'C:\\var\\log\\apache2\\access.log').path,
+                         'var\\log\\apache2\\access.log')
+        self.assertEqual(WindowsPath('\\tmp\\secretdir\\').rel_path_to(
+                         '\\').path,
+                         '..\\..')
+        self.assertEqual(WindowsPath('C:\\tmp\\secretdir\\').rel_path_to(
+                         'D:\\other\\file.txt').path,
+                         'D:\\other\\file.txt')
         with self.assertRaises(TypeError):
-            WindowsPath(u'C:\\mydir\\').rel_path_to(PosixPath('/tmp/file'))
+            WindowsPath('C:\\mydir\\').rel_path_to(PosixPath('/tmp/file'))
 
     def test_lies_under(self):
         """Tests the lies_under method."""
-        self.assertTrue(WindowsPath(u'\\tmp')
-                        .lies_under(u'\\'))
-        self.assertFalse(WindowsPath(u'C:\\tmp')
-                         .lies_under(u'C:\\var'))
-        self.assertFalse(WindowsPath(u'\\tmp')
-                         .lies_under(u'C:\\tmp'))
-        self.assertFalse(WindowsPath(u'C:\\')
-                         .lies_under(u'D:\\tmp'))
-        self.assertTrue(WindowsPath(u'\\tmp\\some\\file\\here')
-                        .lies_under(u'\\tmp\\some'))
-        self.assertFalse(WindowsPath(u'\\tmp\\some\\file\\here')
-                         .lies_under(u'\\tmp\\no'))
-        self.assertFalse(WindowsPath(u'C:\\tmp\\some\\file\\here')
-                         .lies_under(u'C:\\no\\tmp\\some'))
-        self.assertFalse(WindowsPath(u'\\tmp\\some\\file\\here')
-                         .lies_under(u'\\no\\some'))
-        self.assertTrue(WindowsPath(u'C:\\tmp\\some\\file\\here')
-                        .lies_under(u'C:\\tmp\\some\\file\\here'))
-        self.assertTrue(WindowsPath(u'\\')
-                        .lies_under(u'\\'))
-        self.assertTrue(WindowsPath(u'')
-                        .lies_under(u''))
-        self.assertTrue(WindowsPath(u'test')
-                        .lies_under(u''))
-        self.assertFalse(WindowsPath(u'')
-                         .lies_under(u'test'))
-        self.assertFalse(WindowsPath(u'test')
-                         .lies_under(u'\\'))
+        self.assertTrue(WindowsPath('\\tmp')
+                        .lies_under('\\'))
+        self.assertFalse(WindowsPath('C:\\tmp')
+                         .lies_under('C:\\var'))
+        self.assertFalse(WindowsPath('\\tmp')
+                         .lies_under('C:\\tmp'))
+        self.assertFalse(WindowsPath('C:\\')
+                         .lies_under('D:\\tmp'))
+        self.assertTrue(WindowsPath('\\tmp\\some\\file\\here')
+                        .lies_under('\\tmp\\some'))
+        self.assertFalse(WindowsPath('\\tmp\\some\\file\\here')
+                         .lies_under('\\tmp\\no'))
+        self.assertFalse(WindowsPath('C:\\tmp\\some\\file\\here')
+                         .lies_under('C:\\no\\tmp\\some'))
+        self.assertFalse(WindowsPath('\\tmp\\some\\file\\here')
+                         .lies_under('\\no\\some'))
+        self.assertTrue(WindowsPath('C:\\tmp\\some\\file\\here')
+                        .lies_under('C:\\tmp\\some\\file\\here'))
+        self.assertTrue(WindowsPath('\\')
+                        .lies_under('\\'))
+        self.assertTrue(WindowsPath('')
+                        .lies_under(''))
+        self.assertTrue(WindowsPath('test')
+                        .lies_under(''))
+        self.assertFalse(WindowsPath('')
+                         .lies_under('test'))
+        self.assertFalse(WindowsPath('test')
+                         .lies_under('\\'))
 
     def test_comparisons(self):
         """Tests the comparison operators."""
-        self.assertTrue(WindowsPath(u'\\tmp') == WindowsPath(u'\\tmp'))
-        self.assertFalse(WindowsPath(u'C:\\file') != u'c:\\FILE')
-        self.assertTrue(u'c:\\FILE' == WindowsPath(u'C:\\file'))
-        self.assertFalse(WindowsPath(u'C:\\file') == WindowsPath(u'C:\\dir'))
+        self.assertTrue(WindowsPath('\\tmp') == WindowsPath('\\tmp'))
+        self.assertFalse(WindowsPath('C:\\file') != 'c:\\FILE')
+        self.assertTrue('c:\\FILE' == WindowsPath('C:\\file'))
+        self.assertFalse(WindowsPath('C:\\file') == WindowsPath('C:\\dir'))
         self.assertFalse(WindowsPath('some/file') == PosixPath('some/file'))
 
-        self.assertTrue(WindowsPath(u'path/to/file1') < u'path/to/file2')
-        self.assertFalse(u'path/to/file1' >= WindowsPath(u'path/to/file2'))
+        self.assertTrue(WindowsPath('path/to/file1') < 'path/to/file2')
+        self.assertFalse('path/to/file1' >= WindowsPath('path/to/file2'))
 
         if PY3:
             with self.assertRaises(TypeError):
@@ -177,18 +177,18 @@ class TestPosix(unittest.TestCase):
     """
     def test_construct(self):
         """Tests building paths."""
-        self.assertEqual(PosixPath(u'/',
+        self.assertEqual(PosixPath('/',
                                    PosixPath(b'r\xE9mis/dir'),
-                                   u'with',
+                                   'with',
                                    'files.txt').path,
                          b'/r\xE9mis/dir/with/files.txt')
         with self.assertRaises(TypeError):
             PosixPath('/tmp/test', WindowsPath('folder'), 'cat.gif')
         self.assertEqual((PosixPath(b'/tmp/dir') /
-                          PosixPath(u'r\xE9mis/files/')).path,
+                          PosixPath('r\xE9mis/files/')).path,
                          b'/tmp/dir/r\xC3\xA9mis/files')
         if PY3:
-            self.assertEqual(PosixPath(u'/tmp/r\uDCE9mi').path,
+            self.assertEqual(PosixPath('/tmp/r\uDCE9mi').path,
                              b'/tmp/r\xE9mi')
 
     def test_str(self):
@@ -207,14 +207,14 @@ class TestPosix(unittest.TestCase):
                          b'/tmp/r\xE9mi')
         # unicode()
         self.assertEqual(unicode(utf),
-                         u'/tmp/r\xE9mi')
+                         '/tmp/r\xE9mi')
         self.assertEqual(unicode(nonutf),
-                         u'/tmp/r\uFFFDmi')
+                         '/tmp/r\uFFFDmi')
 
     def test_parts(self):
         """Tests parent, ancestor, name, stem, ext."""
         relative = PosixPath(b'directory/users/r\xE9mi/file.txt')
-        absolute = PosixPath(u'/some/other/thing.h\xE9h\xE9')
+        absolute = PosixPath('/some/other/thing.h\xE9h\xE9')
         self.assertEqual(relative.parent.path,
                          b'directory/users/r\xE9mi')
         self.assertEqual(absolute.parent.path,
@@ -223,16 +223,16 @@ class TestPosix(unittest.TestCase):
                          b'/')
         self.assertEqual(relative.name, b'file.txt')
         self.assertEqual(absolute.name, b'thing.h\xC3\xA9h\xC3\xA9')
-        self.assertEqual(absolute.unicodename, u'thing.h\xE9h\xE9')
+        self.assertEqual(absolute.unicodename, 'thing.h\xE9h\xE9')
         self.assertEqual(absolute.stem, b'thing')
         self.assertEqual(absolute.ext, b'.h\xC3\xA9h\xC3\xA9')
 
     def test_root(self):
         """Tests roots."""
         a = PosixPath(b'some/relative/path')
-        b = PosixPath(u'alsorelative')
+        b = PosixPath('alsorelative')
         c = PosixPath(b'/this/is/absolute')
-        d = PosixPath(u'/')
+        d = PosixPath('/')
 
         def split_root(f):
             return tuple(p.path for p in f.split_root())
