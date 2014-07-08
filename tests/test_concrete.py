@@ -153,11 +153,13 @@ class TestLists(unittest.TestCase):
 class TestPattern2Re(unittest.TestCase):
     """Tests the pattern2re() function, used to recognize extended patterns.
     """
-    def do_test_pattern(self, pattern, tests):
-        r = pattern2re(pattern)
+    def do_test_pattern(self, pattern, start, tests):
+        s, fr, ir = pattern2re(pattern)
         error = ''
+        if s != start:
+            error += "\n%r didn't start at %r (but %r)" % (pattern, start, s)
         for path, expected in tests:
-            passed = r.search(path)
+            passed = fr.search(path)
             if passed and not expected:
                 error += "\n%r matched %r" % (pattern, path)
             elif not passed and expected:
@@ -171,6 +173,7 @@ class TestPattern2Re(unittest.TestCase):
                 # Pattern does not contain a slash: only matches the filename,
                 # line fnmatch
                 r'*.txt',
+                '',
                 [('test.txt', True),
                  ('some/test.txt', True),
                  ('.txt/file.png', False),
@@ -178,6 +181,7 @@ class TestPattern2Re(unittest.TestCase):
         self.do_test_pattern(
                 # Pattern contains a slash: matches on the whole path
                 r'/*.txt',
+                '',
                 [('test.txt', True),
                  ('some/test.txt', False),
                  ('.txt/file.png', False),
@@ -185,6 +189,7 @@ class TestPattern2Re(unittest.TestCase):
         self.do_test_pattern(
                 # Note that trailing slash is ignored; do not use this...
                 r'mydir/*.txt/',
+                'mydir',
                 [('test.txt', False),
                  ('some/dir/test.txt', False),
                  ('some/path/mydir/test.txt', False),
@@ -194,6 +199,7 @@ class TestPattern2Re(unittest.TestCase):
         self.do_test_pattern(
                 # ** will match at least one component
                 r'**/mydir/*.txt',
+                '',
                 [('test.txt', False),
                  ('some/dir/test.txt', False),
                  ('path/mydir/test.txt', True),
@@ -202,11 +208,13 @@ class TestPattern2Re(unittest.TestCase):
                  ('mydir/thing.txt', False),
                  ('.txt/file.png', False),
                  ('mydir/thing.txt.jpg', False)])
-        self.do_test_pattern('', [('file', True), ('other/thing/here', True)])
+        self.do_test_pattern('', '',
+                             [('file', True), ('other/thing/here', True)])
 
     def test_wildcards(self):
         self.do_test_pattern(
                 r'some?file*.txt',
+                '',
                 [('somefile.txt', False),
                  ('some file.txt', True),
                  ('some;filename.txt', True),
@@ -216,18 +224,21 @@ class TestPattern2Re(unittest.TestCase):
                  ('some file/name.txt', False)])
         self.do_test_pattern(
                 r'some\?file\*.txt',
+                '',
                 [('some file*.txt', False),
                  ('some?file*.txt', True),
                  ('some?filename.txt', False),
                  ('some?file*.txt', True)])
         self.do_test_pattern(
                 r'**/file',
+                '',
                 [('file', False),
                  ('path/file', True),
                  ('path/to/file', True),
                  ('not/afile', False)])
         self.do_test_pattern(
                 r'path/**/file',
+                'path',
                 [('path/to/file', True),
                  ('path/file', False),
                  ('path/file', False),
@@ -236,6 +247,7 @@ class TestPattern2Re(unittest.TestCase):
                  ('path/to/afile', False)])
         self.do_test_pattern(
                 r'path/**',
+                'path',
                 [('path', False),
                  ('path/file', True),
                  ('path/to/file', True)])
@@ -243,6 +255,7 @@ class TestPattern2Re(unittest.TestCase):
     def test_classes(self):
         self.do_test_pattern(
                 r'some[ ?a]file',
+                '',
                 [('someafile', True),
                  ('some file', True),
                  ('some?file', True),
@@ -251,6 +264,7 @@ class TestPattern2Re(unittest.TestCase):
                 # This one is a bit weird and not very useful but helps
                 # prove that PCRE things get escaped correctly
                 r'some[[:alpha:]]file',
+                '',
                 [('somea]file', True),
                  ('some[]file', True),
                  ('some:]file', True),
