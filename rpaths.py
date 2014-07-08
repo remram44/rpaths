@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import contextlib
+import functools
 import io
 import ntpath
 import os
@@ -23,6 +24,27 @@ if PY3:
 else:
     unicode = unicode
 backend_types = (unicode, bytes)
+
+
+MAX_CACHE = 128
+if hasattr(functools, 'lru_cache'):
+    memoize1 = functools.lru_cache(MAX_CACHE)
+else:
+    def memoize1(f):
+        _cache = {}
+
+        @functools.wraps(f)
+        def wrapped(arg):
+            if arg in _cache:
+                return _cache[arg]
+            else:
+                res = f(arg)
+                if len(_cache) > MAX_CACHE:
+                    _cache.clear()
+                _cache[arg] = res
+                return res
+
+        return wrapped
 
 
 def supports_unicode_filenames(lib):
@@ -815,6 +837,7 @@ def patterncomp2re(component):
     return regex
 
 
+@memoize1
 def pattern2re(pattern):
     """Makes a unicode regular expression from a pattern.
 
