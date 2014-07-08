@@ -503,6 +503,8 @@ class Path(DefaultAbstractPath):
         elif callable(pattern):
             files = filter(pattern, files)
         elif isinstance(pattern, backend_types):
+            # FIXME : if pattern contains slashes (other than first and last
+            # chars) this will never match anything
             if isinstance(pattern, bytes):
                 pattern = pattern.decode(self._encoding, 'replace')
             p_re = pattern2re(pattern)
@@ -781,6 +783,38 @@ class Path(DefaultAbstractPath):
             return io.open(self.path, mode=mode, **kwargs)
 
 
+def patterncomp2re(component):
+    if component == '**':
+        return '.*'
+    i, n = 0, len(component)
+    regex = ''
+    while i < n:
+        c = component[i]
+        if c == '\\':
+            i += 1
+            if i < n:
+                regex += re.escape(component[i])
+        elif c == '*':
+            regex += '[^/]*'
+        elif c == '?':
+            regex += '[^/]'
+        elif c == '[':
+            i += 1
+            regex += '['
+            c = component[i]
+            while c != ']':
+                if c == '/':
+                    raise ValueError("Slashes not accepted in [] classes")
+                regex += re.escape(c)
+                i += 1
+                c = component[i]
+            regex += ']'
+        else:
+            regex += re.escape(c)
+        i += 1
+    return regex
+
+
 def pattern2re(pattern):
     """Makes a unicode regular expression from a pattern.
 
@@ -810,36 +844,9 @@ def pattern2re(pattern):
 
     # Handles each component
     for pnum, pat in enumerate(pattern_segs):
-        i, n = 0, len(pat)
         # The first component is already anchored
         if pnum > 0:
             regex += '/'
-        if pat == '**':
-            regex += '.*'
-            continue
-        while i < n:
-            c = pat[i]
-            if c == '\\':
-                i += 1
-                if i < n:
-                    regex += re.escape(pat[i])
-            elif c == '*':
-                regex += '[^/]*'
-            elif c == '?':
-                regex += '[^/]'
-            elif c == '[':
-                i += 1
-                regex += '['
-                c = pat[i]
-                while c != ']':
-                    if c == '/':
-                        raise ValueError("Slashes not accepted in [] classes")
-                    regex += re.escape(c)
-                    i += 1
-                    c = pat[i]
-                regex += ']'
-            else:
-                regex += re.escape(c)
-            i += 1
+        regex += patterncomp2re(pat)
     regex = regex.rstrip('/') + '$'
     return re.compile(regex)
