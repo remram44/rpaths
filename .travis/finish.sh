@@ -2,7 +2,7 @@
 
 case "$TEST_MODE"
 in
-    run_tests)
+    measure_coverage)
         coveralls
         ;;
 esac
