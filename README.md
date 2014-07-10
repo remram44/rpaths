@@ -1,5 +1,8 @@
 [![Build Status](https://travis-ci.org/remram44/rpaths.svg?branch=master)]
 (https://travis-ci.org/remram44/rpaths)
+[![Coverage Status]
+(https://coveralls.io/repos/remram44/rpaths/badge.png?branch=master)]
+(https://coveralls.io/r/remram44/rpaths?branch=master)
 
 rpaths
 ======

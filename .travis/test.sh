@@ -8,7 +8,7 @@ case "$TEST_MODE"
 in
     run_tests)
         run_lines<<'EOF'
-        python tests
+        coverage run --source=rpaths.py --branch tests/__main__.py
 EOF
         ;;
     check_style)

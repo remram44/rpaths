@@ -9,6 +9,7 @@ python:
   - "3.4"
 install: .travis/install.sh
 script: .travis/test.sh
+after_success: .travis/finish.sh
 matrix:
   include:
     - python: "2.7"
