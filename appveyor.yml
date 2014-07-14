@@ -1,0 +1,13 @@
+# https://ci.appveyor.com/project/remram44/rpaths
+build: false
+environment:
+  matrix:
+    - PYTHON: "C:/Python27"
+    - PYTHON: "C:/Python34"
+install:
+  - ps: (new-object net.webclient).DownloadFile('https://raw.github.com/pypa/pip/master/contrib/get-pip.py', 'C:/get-pip.py')
+  - "%PYTHON%/python.exe C:/get-pip.py"
+  - "%PYTHON%/Scripts/pip.exe install setuptools"
+  - ".appveyor\\install.bat"
+test_script:
+  - ".appveyor\\test.bat"

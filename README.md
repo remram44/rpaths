@@ -1,5 +1,7 @@
-[![Build Status](https://travis-ci.org/remram44/rpaths.svg?branch=master)]
+[![Linux Build](https://travis-ci.org/remram44/rpaths.svg?branch=master)]
 (https://travis-ci.org/remram44/rpaths)
+[![Win Build](https://ci.appveyor.com/api/projects/status/s7efr8aoqkyp69t0)]
+(https://ci.appveyor.com/project/remram44/rpaths)
 
 rpaths
 ======
