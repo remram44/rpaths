@@ -2,6 +2,9 @@
 (https://travis-ci.org/remram44/rpaths)
 [![Win Build](https://ci.appveyor.com/api/projects/status/s7efr8aoqkyp69t0)]
 (https://ci.appveyor.com/project/remram44/rpaths)
+[![Coverage Status]
+(https://coveralls.io/repos/remram44/rpaths/badge.png?branch=master)]
+(https://coveralls.io/r/remram44/rpaths?branch=master)
 
 rpaths
 ======

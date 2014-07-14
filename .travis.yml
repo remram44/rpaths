@@ -9,7 +9,10 @@ python:
   - "3.4"
 install: .travis/install.sh
 script: .travis/test.sh
+after_success: .travis/finish.sh
 matrix:
   include:
     - python: "2.7"
       env: TEST_MODE=check_style
+    - python: "2.7"
+      env: TEST_MODE=measure_coverage
