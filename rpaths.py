@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import contextlib
+import functools
 import io
 import ntpath
 import os
@@ -23,6 +24,27 @@ if PY3:
 else:
     unicode = unicode
 backend_types = (unicode, bytes)
+
+
+MAX_CACHE = 128
+if hasattr(functools, 'lru_cache'):
+    memoize1 = functools.lru_cache(MAX_CACHE)
+else:
+    def memoize1(f):
+        _cache = {}
+
+        @functools.wraps(f)
+        def wrapped(arg):
+            if arg in _cache:
+                return _cache[arg]
+            else:
+                res = f(arg)
+                if len(_cache) > MAX_CACHE:
+                    _cache.clear()
+                _cache[arg] = res
+                return res
+
+        return wrapped
 
 
 def supports_unicode_filenames(lib):
@@ -505,8 +527,12 @@ class Path(DefaultAbstractPath):
         elif isinstance(pattern, backend_types):
             if isinstance(pattern, bytes):
                 pattern = pattern.decode(self._encoding, 'replace')
-            p_re = pattern2re(pattern)
-            files = [f for f in files if p_re.search(f.unicodename)]
+            start, full_re, int_re = pattern2re(pattern)
+            # If pattern contains slashes (other than first and last chars),
+            # listdir() will never match anything
+            if start:
+                return []
+            files = [f for f in files if full_re.search(f.unicodename)]
         else:
             raise TypeError("listdir() expects pattern to be a callable, "
                             "a regular expression or a string pattern, "
@@ -518,6 +544,11 @@ class Path(DefaultAbstractPath):
 
         Symbolic links will be walked but files will never be duplicated.
         """
+        if not self.is_dir():
+            raise ValueError("recursedir() called on non-directory %s" % self)
+
+        start = ''
+        int_pattern = None
         if pattern is None:
             pattern = lambda p: True
         elif callable(pattern):
@@ -525,22 +556,32 @@ class Path(DefaultAbstractPath):
         elif isinstance(pattern, backend_types):
             if isinstance(pattern, bytes):
                 pattern = pattern.decode(self._encoding, 'replace')
-            p_re = pattern2re(pattern)
+            start, full_re, int_re = pattern2re(pattern)
             if self._lib.sep != '/':
-                pattern = lambda p: p_re.search(
+                pattern = lambda p: full_re.search(
                         unicode(p).replace(self._lib.sep, '/'))
+                if int_pattern is not None:
+                    int_pattern = lambda p: int_re.search(
+                            unicode(p).replace(self._lib.sep, '/'))
             else:
-                pattern = lambda p: p_re.search(unicode(p))
+                pattern = lambda p: full_re.search(unicode(p))
+                if int_pattern is not None:
+                    int_pattern = lambda p: int_re.search(unicode(p))
         else:
             raise TypeError("recursedir() expects pattern to be a callable, "
                             "a regular expression or a string pattern, got "
                             "%r" % type(pattern))
-        return self._recursedir(pattern=pattern, top_down=top_down,
-                                seen=set(), path=self.__class__(''))
+        if not start:
+            path = self
+        else:
+            path = self / start
+            if not path.is_dir():
+                return []
+        return path._recursedir(pattern=pattern, int_pattern=int_pattern,
+                                top_down=top_down, seen=set(),
+                                path=self.__class__(start))
 
-    def _recursedir(self, pattern, top_down, seen, path):
-        if not self.is_dir():
-            raise ValueError("recursedir() called on non-directory %s" % self)
+    def _recursedir(self, pattern, int_pattern, top_down, seen, path):
         real_dir = self.resolve()
         if real_dir in seen:
             return
@@ -549,15 +590,21 @@ class Path(DefaultAbstractPath):
             newpath = path / child
             child = self / child
             is_dir = child.is_dir()
+            # Fast failing thanks to int_pattern here: if we don't match
+            # int_pattern, don't try inner files either
+            matches_pattern = pattern(newpath)
+            if (not matches_pattern and
+                    int_pattern is not None and not int_pattern(newpath)):
+                continue
             if is_dir and not top_down:
-                for grandkid in child._recursedir(pattern, top_down, seen,
-                                                  newpath):
+                for grandkid in child._recursedir(pattern, int_pattern,
+                                                  top_down, seen, newpath):
                     yield grandkid
-            if pattern(newpath):
+            if matches_pattern:
                 yield child
             if is_dir and top_down:
-                for grandkid in child._recursedir(pattern, top_down, seen,
-                                                  newpath):
+                for grandkid in child._recursedir(pattern, int_pattern,
+                                                  top_down, seen, newpath):
                     yield grandkid
 
     def exists(self):
@@ -781,8 +828,52 @@ class Path(DefaultAbstractPath):
             return io.open(self.path, mode=mode, **kwargs)
 
 
+no_special_chars = re.compile(r'^(?:[^\\*?\[\]]|\\.)*$')
+
+
+def patterncomp2re(component):
+    if component == '**':
+        return '.*'
+    i, n = 0, len(component)
+    regex = ''
+    while i < n:
+        c = component[i]
+        if c == '\\':
+            i += 1
+            if i < n:
+                regex += re.escape(component[i])
+        elif c == '*':
+            regex += '[^/]*'
+        elif c == '?':
+            regex += '[^/]'
+        elif c == '[':
+            i += 1
+            regex += '['
+            c = component[i]
+            while c != ']':
+                if c == '/':
+                    raise ValueError("Slashes not accepted in [] classes")
+                regex += re.escape(c)
+                i += 1
+                c = component[i]
+            regex += ']'
+        else:
+            regex += re.escape(c)
+        i += 1
+    return regex
+
+
+@memoize1
 def pattern2re(pattern):
     """Makes a unicode regular expression from a pattern.
+
+    Returns ``(start, full_re, int_re)`` where:
+     * `start` is either empty or the subdirectory in which to start searching,
+     * `full_re` is a regular expression object that matches the requested
+       files, i.e. a translation of the pattern
+     * `int_re` is either None of a regular expression object that matches
+       the requested paths or their ancestors (i.e. if a path doesn't match
+       `int_re`, no path under it will match `full_re`)
 
     This uses extended patterns, where:
      * a slash '/' always represents the path separator
@@ -802,44 +893,50 @@ def pattern2re(pattern):
     # This anchors the first component either at the start of the string or at
     # the start of a path component
     if not pattern:
-        return re.compile('')
+        return '', re.compile(''), None
     elif '/' in pattern:
-        regex = '^'  # Start at beginning of path
+        full_regex = '^'  # Start at beginning of path
+        int_regex = ['^']
+        int_regex_done = False
+        start_dir = []
+        start_dir_done = False
     else:
-        regex = '(?:^|/)'  # Skip any number of full components
+        full_regex = '(?:^|/)'  # Skip any number of full components
+        int_regex = None
+        int_regex_done = True
+        start_dir = []
+        start_dir_done = True
 
     # Handles each component
     for pnum, pat in enumerate(pattern_segs):
-        i, n = 0, len(pat)
+        comp = patterncomp2re(pat)
+
         # The first component is already anchored
         if pnum > 0:
-            regex += '/'
-        if pat == '**':
-            regex += '.*'
-            continue
-        while i < n:
-            c = pat[i]
-            if c == '\\':
-                i += 1
-                if i < n:
-                    regex += re.escape(pat[i])
-            elif c == '*':
-                regex += '[^/]*'
-            elif c == '?':
-                regex += '[^/]'
-            elif c == '[':
-                i += 1
-                regex += '['
-                c = pat[i]
-                while c != ']':
-                    if c == '/':
-                        raise ValueError("Slashes not accepted in [] classes")
-                    regex += re.escape(c)
-                    i += 1
-                    c = pat[i]
-                regex += ']'
+            full_regex += '/'
+        full_regex += comp
+
+        if not int_regex_done:
+            if pat == '**':
+                int_regex_done = True
             else:
-                regex += re.escape(c)
-            i += 1
-    regex = regex.rstrip('/') + '$'
-    return re.compile(regex)
+                int_regex.append(comp)
+                if not start_dir_done and no_special_chars.match(pat):
+                    start_dir.append(pat)
+                else:
+                    start_dir_done = True
+
+    full_regex = re.compile(full_regex.rstrip('/') + '$')
+    if int_regex is not None:
+        n = len(int_regex)
+        int_regex_s = ''
+        for i, c in enumerate(reversed(int_regex)):
+            if i == n - 1:  # Last iteration (first component)
+                int_regex_s = '^(?:%s%s)?' % (c, int_regex_s)
+            elif int_regex_s:
+                int_regex_s = '(?:/%s%s)?' % (c, int_regex_s)
+            else:  # First iteration (last component)
+                int_regex_s = '(?:/%s)?' % c
+        int_regex = re.compile(int_regex_s)
+    start_dir = '/'.join(start_dir)
+    return start_dir, full_regex, int_regex
