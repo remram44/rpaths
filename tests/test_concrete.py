@@ -49,6 +49,14 @@ class TestConcrete(unittest.TestCase):
             f.remove()
             self.assertFalse(f.exists())
 
+    def test_rel_path_to(self):
+        self.assertEqual(Path('some/prefix/and/a/directory/').rel_path_to(
+                         'some/prefix/path/to/cat.jpg'),
+                         Path('../../../path/to/cat.jpg'))
+        self.assertEqual(Path('some/prefix/').rel_path_to(
+                         Path('some/prefix/path/to/cat.jpg')),
+                         Path('path/to/cat.jpg'))
+
 
 class TestLists(unittest.TestCase):
     """Tests listing methods.
