@@ -476,7 +476,7 @@ class Path(DefaultAbstractPath):
         Contrary to :class:`~rpaths.AbstractPath`'s version, this will also
         work if one path is relative and the other absolute.
         """
-        return self.absolute().rel_path_to(Path(dest).absolute())
+        return super(Path, self.absolute()).rel_path_to(Path(dest).absolute())
 
     def relative(self):
         """Builds a relative version of this path from the current directory.
