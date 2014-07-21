@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.6 (2014-07-21)
+----------------
+
+Bugfixes:
+* Fixes non-working `Path#rel_path_to()`.
+
 0.5 (2014-06-26)
 ----------------
 

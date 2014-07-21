@@ -11,7 +11,7 @@ import tempfile
 
 __all__ = ["unicode", "Path", "PY3", "PosixPath", "WindowsPath"]
 
-__version__ = '0.5'
+__version__ = '0.6'
 
 
 PY3 = sys.version_info[0] == 3
