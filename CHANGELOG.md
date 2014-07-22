@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.7 (???)
+----------------
+
+Features:
+* Extended glob filters (à la git, /some/dir*/**/*.log)
+* Python 3.2 compatibility
+
 0.6 (2014-07-21)
 ----------------
 
