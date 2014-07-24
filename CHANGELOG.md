@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.7 (???)
+0.7 (2014-07-24)
 ----------------
 
 Features:
@@ -56,7 +56,7 @@ Features:
 * Adds docstrings everywhere. There is some HTML documentation at ReadTheDocs:
   http://rpaths.remram.fr/
 
-0.1 (2017-06-07)
+0.1 (2014-06-07)
 ----------------
 
 * Basic functionality.
