@@ -60,6 +60,27 @@ class TestConcrete(unittest.TestCase):
                          Path('some/prefix/path/to/cat.jpg')),
                          Path('path/to/cat.jpg'))
 
+    def test_rewrite(self):
+        tmp = Path.tempdir()
+        try:
+            # Create original file
+            orig = tmp / 'unix.txt'
+            # Write some contents
+            with orig.open('wb') as fp:
+                fp.write(b"Some\ncontent\nin here\n")
+            if issubclass(Path, PosixPath):
+                orig.chmod(0o755)
+            # Rewrite it in place!
+            with orig.rewrite(read_newline='\n',
+                              write_newline='\r\n') as (r, w):
+                w.write(r.read())
+            with orig.open('rb') as fp:
+                self.assertEqual(fp.read(), b"Some\r\ncontent\r\nin here\r\n")
+            if issubclass(Path, PosixPath):
+                self.assertTrue(orig.stat().st_mode & 0o100)
+        finally:
+            tmp.rmtree()
+
 
 class TestLists(unittest.TestCase):
     """Tests listing methods.
