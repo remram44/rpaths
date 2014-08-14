@@ -7,7 +7,8 @@ try:
 except ImportError:
     import unittest
 
-from rpaths import unicode, Path, PosixPath, WindowsPath, pattern2re
+from rpaths import unicode, dict_union, Path, PosixPath, WindowsPath, \
+    pattern2re
 
 
 windows_only = unittest.skipUnless(issubclass(Path, WindowsPath),
@@ -278,3 +279,13 @@ class TestPattern2Re(unittest.TestCase):
                  ('some:]file', True),
                  ('someb]file', False),
                  ('somebfile', False)])
+
+
+class TestDictUnion(unittest.TestCase):
+    def test_union(self):
+        common = {'a': 1, 'b': 2}
+        t1 = {'a': 3, 'c': 5}
+        t2 = {'a': 4, 'd': 8}
+        self.assertEqual(dict_union(common, t1), {'a': 3, 'b': 2, 'c': 5})
+        self.assertEqual(dict_union(common, t2), {'a': 4, 'b': 2, 'd': 8})
+        self.assertEqual(common, {'a': 1, 'b': 2})

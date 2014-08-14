@@ -52,6 +52,13 @@ def supports_unicode_filenames(lib):
     return lib is ntpath
 
 
+def dict_union(*dcts):
+    dct = {}
+    for dct2 in dcts:
+        dct.update(dct2)
+    return dct
+
+
 class AbstractPath(object):
     """An abstract representation of a path.
 
