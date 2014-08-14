@@ -704,7 +704,7 @@ class Path(DefaultAbstractPath):
             return os.chmod(self.path, mode)
 
     if hasattr(os, 'chown'):
-        def chown(self, uid, gid):
+        def chown(self, uid=-1, gid=-1):
             """Changes the owner and group id of the path.
             """
             return os.chown(self.path, uid, gid)
