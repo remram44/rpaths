@@ -543,6 +543,19 @@ class Path(DefaultAbstractPath):
         """Recursively lists all files under this directory.
 
         Symbolic links will be walked but files will never be duplicated.
+
+        This accepts extended patterns, where:
+         * a slash '/' always represents the path separator
+         * a backslash '\' escapes other special characters
+         * an initial slash '/' anchors the match at the beginning of the
+           (relative) path
+         * a trailing '/' suffix is removed
+         * an asterisk '*'  matches a sequence of any length (including 0) of
+           any characters (except the path separator)
+         * a '?' matches exactly one character (except the path separator)
+         * '[abc]' matches characters 'a', 'b' or 'c'
+         * two asterisks '**' matches one or more path components (might match
+           '/' characters)
         """
         if not self.is_dir():
             raise ValueError("recursedir() called on non-directory %s" % self)
