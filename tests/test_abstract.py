@@ -30,6 +30,9 @@ class TestWindows(unittest.TestCase):
         self.assertEqual((WindowsPath('Users\\R\xE9mi/Desktop') /
                           WindowsPath(b'pictures/m\xE9chant.jpg')).path,
                          'Users\\R\xE9mi\\Desktop\\pictures\\m\xE9chant.jpg')
+        self.assertEqual((WindowsPath('C:\\dir') /
+                          WindowsPath('D:\\other')).path,
+                         'D:\\other')
 
     def test_str(self):
         """Tests getting string representations (repr/bytes/unicode)."""
@@ -190,6 +193,9 @@ class TestPosix(unittest.TestCase):
         if PY3:
             self.assertEqual(PosixPath('/tmp/r\uDCE9mi').path,
                              b'/tmp/r\xE9mi')
+        self.assertEqual((PosixPath('/home/test') /
+                          PosixPath('/var/log')).path,
+                         '/var/log')
 
     def test_str(self):
         """Tests getting string representations (repr/bytes/unicode)."""
