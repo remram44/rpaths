@@ -110,6 +110,17 @@ class AbstractPath(object):
         return self.__class__(self, other)
     __truediv__ = __div__
 
+    def __add__(self, other):
+        """Adds a suffix to some path (for example, '.bak').
+        """
+        if not isinstance(other, backend_types):
+            raise TypeError("+ operator expects a str or bytes object, "
+                            "got %r" % type(other))
+        other = self._to_backend(other)
+        if self._to_backend('/') in other or self._sep in other:
+            raise ValueError("Can't add separators to filename with +, use /")
+        return self.__class__(self.path + other)
+
     def __eq__(self, other):
         """Compares two paths.
 
