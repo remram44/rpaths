@@ -52,6 +52,13 @@ def supports_unicode_filenames(lib):
     return lib is ntpath
 
 
+def dict_union(*dcts):
+    dct = {}
+    for dct2 in dcts:
+        dct.update(dct2)
+    return dct
+
+
 class AbstractPath(object):
     """An abstract representation of a path.
 
@@ -102,6 +109,17 @@ class AbstractPath(object):
         """
         return self.__class__(self, other)
     __truediv__ = __div__
+
+    def __add__(self, other):
+        """Adds a suffix to some path (for example, '.bak').
+        """
+        if not isinstance(other, backend_types):
+            raise TypeError("+ operator expects a str or bytes object, "
+                            "got %r" % type(other))
+        other = self._to_backend(other)
+        if self._to_backend('/') in other or self._sep in other:
+            raise ValueError("Can't add separators to filename with +, use /")
+        return self.__class__(self.path + other)
 
     def __eq__(self, other):
         """Compares two paths.
@@ -841,6 +859,67 @@ class Path(DefaultAbstractPath):
             return io.open((self / name).path, mode=mode, **kwargs)
         else:
             return io.open(self.path, mode=mode, **kwargs)
+
+    @contextlib.contextmanager
+    def rewrite(self, mode='r', name=None, temp=None, tempext='~', **kwargs):
+        """Replaces this file with new content.
+
+        This context manager gives you two file objects, (r, w), where r is
+        readable and has the current content of the file, and w is writable
+        and will replace the file at the end of the context (unless an
+        exception is raised, in which case it is rolled back).
+
+        Keyword arguments will be used for both files, unless they are prefixed
+        with ``read_`` or ``write_``. For instance::
+
+            with Path('test.txt').rewrite(read_newline='\n',
+                                          write_newline='\r\n') as (r, w):
+                w.write(r.read())
+        """
+        if name is not None:
+            pathr = self / name
+        else:
+            pathr = self
+        for m in 'war+':
+            mode = mode.replace(m, '')
+
+        # Build options
+        common_kwargs = {}
+        readable_kwargs = {}
+        writable_kwargs = {}
+        for key, value in kwargs.items():
+            if key.startswith('read_'):
+                readable_kwargs[key[5:]] = value
+            elif key.startswith('write_'):
+                writable_kwargs[key[6:]] = value
+            else:
+                common_kwargs[key] = value
+        readable_kwargs = dict_union(common_kwargs, readable_kwargs)
+        writable_kwargs = dict_union(common_kwargs, writable_kwargs)
+
+        with pathr.open('r' + mode, **readable_kwargs) as readable:
+            if temp is not None:
+                pathw = Path(temp)
+            else:
+                pathw = pathr + tempext
+            try:
+                pathw.remove()
+            except OSError:
+                pass
+            writable = pathw.open('w' + mode, **writable_kwargs)
+            try:
+                yield readable, writable
+            except Exception:
+                # Problem, delete writable
+                writable.close()
+                pathw.remove()
+                raise
+            else:
+                writable.close()
+        # Alright, replace
+        pathr.copymode(pathw)
+        pathr.remove()
+        pathw.rename(pathr)
 
 
 no_special_chars = re.compile(r'^(?:[^\\*?\[\]]|\\.)*$')

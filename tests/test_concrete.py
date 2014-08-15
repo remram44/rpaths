@@ -7,7 +7,8 @@ try:
 except ImportError:
     import unittest
 
-from rpaths import unicode, Path, PosixPath, WindowsPath, pattern2re
+from rpaths import unicode, dict_union, Path, PosixPath, WindowsPath, \
+    pattern2re
 
 
 windows_only = unittest.skipUnless(issubclass(Path, WindowsPath),
@@ -58,6 +59,27 @@ class TestConcrete(unittest.TestCase):
         self.assertEqual(Path('some/prefix/').rel_path_to(
                          Path('some/prefix/path/to/cat.jpg')),
                          Path('path/to/cat.jpg'))
+
+    def test_rewrite(self):
+        tmp = Path.tempdir()
+        try:
+            # Create original file
+            orig = tmp / 'unix.txt'
+            # Write some contents
+            with orig.open('wb') as fp:
+                fp.write(b"Some\ncontent\nin here\n")
+            if issubclass(Path, PosixPath):
+                orig.chmod(0o755)
+            # Rewrite it in place!
+            with orig.rewrite(read_newline='\n',
+                              write_newline='\r\n') as (r, w):
+                w.write(r.read())
+            with orig.open('rb') as fp:
+                self.assertEqual(fp.read(), b"Some\r\ncontent\r\nin here\r\n")
+            if issubclass(Path, PosixPath):
+                self.assertTrue(orig.stat().st_mode & 0o100)
+        finally:
+            tmp.rmtree()
 
 
 class TestLists(unittest.TestCase):
@@ -278,3 +300,13 @@ class TestPattern2Re(unittest.TestCase):
                  ('some:]file', True),
                  ('someb]file', False),
                  ('somebfile', False)])
+
+
+class TestDictUnion(unittest.TestCase):
+    def test_union(self):
+        common = {'a': 1, 'b': 2}
+        t1 = {'a': 3, 'c': 5}
+        t2 = {'a': 4, 'd': 8}
+        self.assertEqual(dict_union(common, t1), {'a': 3, 'b': 2, 'c': 5})
+        self.assertEqual(dict_union(common, t2), {'a': 4, 'b': 2, 'd': 8})
+        self.assertEqual(common, {'a': 1, 'b': 2})

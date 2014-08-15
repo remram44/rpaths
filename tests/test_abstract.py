@@ -30,6 +30,20 @@ class TestWindows(unittest.TestCase):
         self.assertEqual((WindowsPath('Users\\R\xE9mi/Desktop') /
                           WindowsPath(b'pictures/m\xE9chant.jpg')).path,
                          'Users\\R\xE9mi\\Desktop\\pictures\\m\xE9chant.jpg')
+        self.assertEqual((WindowsPath('C:\\dir') /
+                          WindowsPath('D:\\other')).path,
+                         'D:\\other')
+
+    def test_plus(self):
+        """Tests the plus operator."""
+        self.assertEqual((WindowsPath('some\\file.txt') + '.bak').path,
+                         'some\\file.txt.bak')
+        with self.assertRaises(TypeError):
+            WindowsPath('some\\file.txt') + WindowsPath('.bak')
+        with self.assertRaises(ValueError):
+            WindowsPath('some\\file.txt') + '.bak/kidding'
+        with self.assertRaises(ValueError):
+            WindowsPath('some\\file.txt') + '/backup'
 
     def test_str(self):
         """Tests getting string representations (repr/bytes/unicode)."""
@@ -190,6 +204,20 @@ class TestPosix(unittest.TestCase):
         if PY3:
             self.assertEqual(PosixPath('/tmp/r\uDCE9mi').path,
                              b'/tmp/r\xE9mi')
+        self.assertEqual((PosixPath(b'/home/test') /
+                          PosixPath('/var/log')).path,
+                         b'/var/log')
+
+    def test_plus(self):
+        """Tests the plus operator."""
+        self.assertEqual((PosixPath('some/file.txt') + '.bak').path,
+                         b'some/file.txt.bak')
+        with self.assertRaises(TypeError):
+            PosixPath('some/file.txt') + PosixPath('.bak')
+        with self.assertRaises(ValueError):
+            PosixPath('some/file.txt') + '.bak/kidding'
+        with self.assertRaises(ValueError):
+            PosixPath('some/file.txt') + '/backup'
 
     def test_str(self):
         """Tests getting string representations (repr/bytes/unicode)."""
