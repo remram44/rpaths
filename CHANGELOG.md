@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.8 (2014-08-15)
+----------------
+
+Bugfixes:
+* Fixes recursedir()'s recursing on too many folders
+
+Features:
+* chown() now has 'no change' defaults for uid and gid
+* Adds '+' operator to add a string to the end of the name of a path
+* Adds `Path#rewrite()` context-manager, for rewriting a file in-place
+
 0.7 (2014-07-24)
 ----------------
 

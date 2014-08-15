@@ -9,7 +9,7 @@ It aims at total Python 2/3 and Windows/POSIX compatibility. To my knowledge,
 no other library can handle all the possible paths on every platform.
 """
 setup(name='rpaths',
-      version='0.7',
+      version='0.8',
       py_modules=['rpaths'],
       description='Path manipulation library',
       author="Remi Rampin",
