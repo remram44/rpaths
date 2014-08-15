@@ -152,6 +152,13 @@ class TestLists(unittest.TestCase):
                             [b'file', b'r\xC3\xA9pertoire',
                              b'r\xC3\xA9pertoire/file']))
 
+        self.compare_paths(self.tmp, self.tmp.recursedir('/file'),
+                           (['file'], [b'file']))
+        self.compare_paths(self.tmp,
+                           self.tmp.recursedir('/r\xE9pertoire/file'),
+                           (['r\xE9pertoire\\file'],
+                            [b'r\xC3\xA9pertoire/file']))
+
 
 class TestPattern2Re(unittest.TestCase):
     """Tests the pattern2re() function, used to recognize extended patterns.
