@@ -573,12 +573,12 @@ class Path(DefaultAbstractPath):
             if self._lib.sep != '/':
                 pattern = lambda p: full_re.search(
                         unicode(p).replace(self._lib.sep, '/'))
-                if int_pattern is not None:
+                if int_re is not None:
                     int_pattern = lambda p: int_re.search(
                             unicode(p).replace(self._lib.sep, '/'))
             else:
                 pattern = lambda p: full_re.search(unicode(p))
-                if int_pattern is not None:
+                if int_re is not None:
                     int_pattern = lambda p: int_re.search(unicode(p))
         else:
             raise TypeError("recursedir() expects pattern to be a callable, "
@@ -950,6 +950,6 @@ def pattern2re(pattern):
                 int_regex_s = '(?:/%s%s)?' % (c, int_regex_s)
             else:  # First iteration (last component)
                 int_regex_s = '(?:/%s)?' % c
-        int_regex = re.compile(int_regex_s)
+        int_regex = re.compile(int_regex_s + '$')
     start_dir = '/'.join(start_dir)
     return start_dir, full_regex, int_regex
