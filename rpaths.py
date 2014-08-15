@@ -588,8 +588,10 @@ class Path(DefaultAbstractPath):
             path = self
         else:
             path = self / start
-            if not path.is_dir():
+            if not path.exists():
                 return []
+            elif not path.is_dir():
+                return [path]
         return path._recursedir(pattern=pattern, int_pattern=int_pattern,
                                 top_down=top_down, seen=set(),
                                 path=self.__class__(start))
