@@ -6,8 +6,8 @@ rpaths: a compatible, object-oriented path manipulation library
 Introduction
 ------------
 
-Python provides a module to manipulate filenames: ``os.path``. However, it is
-very cumbersome to use (not object-oriented) and difficult to use safely
+Python provides a module to manipulate filenames: :mod:`os.path`. However, it
+is very cumbersome to use (not object-oriented) and difficult to use safely
 (because of the bytes/unicode issue).
 
 This library provides classes allowing you to perform all the common operations
@@ -16,6 +16,9 @@ on paths easily, using ad-hoc classes.
 Moreover, it aims at total Python 2/3 and Windows/POSIX interoperability. In
 every case, it will behave the "right way", even when dealing with POSIX
 filenames in broken unicode encodings.
+
+Development happens on Github: https://github.com/remram44/rpaths. Feel free to
+report bugs, request features or direct your patches there.
 
 Classes
 -------
