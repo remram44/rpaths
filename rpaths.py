@@ -244,7 +244,7 @@ class AbstractPath(object):
         __str__ = __bytes__
 
     def expand_user(self):
-        """Replaces ``~`` or ``~user`` by that `user`'s home directory.
+        """Replaces ``~`` or ``~user`` by that user's home directory.
         """
         return self.__class__(self._lib.expanduser(self.path))
 
@@ -295,7 +295,7 @@ class AbstractPath(object):
     def split_root(self):
         """Splits this path into a pair (drive, location).
 
-        Note that, because all paths are normalized, a root of '.' will be
+        Note that, because all paths are normalized, a root of ``'.'`` will be
         returned for relative paths.
         """
         if not PY3 and hasattr(self._lib, 'splitunc'):
@@ -344,7 +344,7 @@ class AbstractPath(object):
         return components
 
     def ancestor(self, n):
-        """Goes up n directories.
+        """Goes up `n` directories.
         """
         p = self
         for i in range(n):
@@ -826,7 +826,8 @@ class Path(DefaultAbstractPath):
     def copytree(self, target, symlinks=False):
         """Recursively copies this directory to the `target` location.
 
-        The permissions and times are copied (like copystat).
+        The permissions and times are copied (like
+        :meth:`~rpaths.Path.copystat`).
 
         If the optional `symlinks` flag is true, symbolic links in the source
         tree result in symbolic links in the destination tree; if it is false,
