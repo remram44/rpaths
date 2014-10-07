@@ -48,11 +48,15 @@ You shouldn't use that directly, use :class:`~rpaths.PosixPath` and
 .. autoclass:: rpaths.AbstractPath
    :members:
 
+.. autoclass:: rpaths.PosixPath
+
+.. autoclass:: rpaths.WindowsPath
+
 Concrete class Path
 '''''''''''''''''''
 
 The class Path represents a native path on your system. It inherits from either
-PosixPath or WindowsPath.
+:class:`~rpaths.PosixPath` or :class:`~rpaths.WindowsPath`.
 
 .. autoclass:: rpaths.Path
    :members:
