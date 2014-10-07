@@ -234,7 +234,10 @@ class AbstractPath(object):
         system).
         """
         if self._backend is bytes:
-            return self.path.decode(self._encoding, 'replace')
+            if PY3:
+                return self.path.decode(self._encoding, 'surrogateescape')
+            else:
+                return self.path.decode(self._encoding, 'replace')
         else:
             return self.path
 

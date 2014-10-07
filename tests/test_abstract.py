@@ -237,7 +237,7 @@ class TestPosix(unittest.TestCase):
         self.assertEqual(unicode(utf),
                          '/tmp/r\xE9mi')
         self.assertEqual(unicode(nonutf),
-                         '/tmp/r\uFFFDmi')
+                         '/tmp/r\uDCE9mi' if PY3 else '/tmp/r\uFFFDmi')
 
     def test_parts(self):
         """Tests parent, ancestor, name, stem, ext."""
