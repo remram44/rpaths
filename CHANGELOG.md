@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.9 (2014-10-20)
+----------------
+
+Features:
+* unicode() conversion uses `surrogateescape` on Python 3
+
 0.8 (2014-08-15)
 ----------------
 
