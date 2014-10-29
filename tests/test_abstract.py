@@ -80,6 +80,10 @@ class TestWindows(unittest.TestCase):
         self.assertEqual(absolute.unicodename, 'thing.h\xE9h\xE9')
         self.assertEqual(absolute.stem, 'thing')
         self.assertEqual(absolute.ext, '.h\xE9h\xE9')
+        self.assertEqual(relative._components(),
+                         ['directory', 'users', 'r\xE9mi', 'file.txt'])
+        self.assertEqual(absolute._components(),
+                         ['\\', 'some', 'other', 'thing.h\xE9h\xE9'])
 
     def test_root(self):
         """Tests roots, drives and UNC shares."""
@@ -254,6 +258,11 @@ class TestPosix(unittest.TestCase):
         self.assertEqual(absolute.unicodename, 'thing.h\xE9h\xE9')
         self.assertEqual(absolute.stem, b'thing')
         self.assertEqual(absolute.ext, b'.h\xC3\xA9h\xC3\xA9')
+        self.assertEqual(relative._components(),
+                         [b'directory', b'users', b'r\xE9mi', b'file.txt'])
+        self.assertEqual(absolute._components(),
+                         [b'/', b'some',
+                          b'other', b'thing.h\xC3\xA9h\xC3\xA9'])
 
     def test_root(self):
         """Tests roots."""

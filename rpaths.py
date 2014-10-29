@@ -338,7 +338,7 @@ class AbstractPath(object):
 
     def _components(self):
         root, loc = self.split_root()
-        if root.path != '.':
+        if root.path != self._to_backend('.'):
             components = [root.path]
         else:
             components = []
