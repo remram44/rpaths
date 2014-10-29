@@ -119,6 +119,8 @@ class TestWindows(unittest.TestCase):
 
     def test_rel_path_to(self):
         """Tests the rel_path_to method."""
+        self.assertEqual(WindowsPath('.').rel_path_to(WindowsPath('')).path,
+                         '.')
         self.assertEqual(WindowsPath('\\var\\log\\apache2\\').rel_path_to(
                          '\\var\\www\\cat.jpg').path,
                          '..\\..\\www\\cat.jpg')
@@ -290,6 +292,8 @@ class TestPosix(unittest.TestCase):
 
     def test_rel_path_to(self):
         """Tests the rel_path_to method."""
+        self.assertEqual(PosixPath('.').rel_path_to(PosixPath('')).path,
+                         b'.')
         self.assertEqual(PosixPath(b'/var/log/apache2/').rel_path_to(
                          b'/var/www/cat.jpg').path,
                          b'../../www/cat.jpg')

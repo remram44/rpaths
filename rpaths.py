@@ -376,6 +376,7 @@ class AbstractPath(object):
         orig_list = self.norm_case()._components()
         dest_list = dest._components()
 
+        i = -1
         for i, (orig_part, dest_part) in enumerate(zip(orig_list, dest_list)):
             if orig_part != self._lib.normcase(dest_part):
                 up = ['..'] * (len(orig_list) - i)
