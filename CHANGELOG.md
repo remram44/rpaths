@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.10 (2014-11-06)
+-----------------
+
+Bugfixes:
+* Fixes a `rel_path_to()` bug on Python 3
+* Fixes `'.'.rel_path_to('.')` exception
+* Fixes `tempfile()` and `tempdir()` not accepting Path as 'dir' parameter
+
 0.9 (2014-10-20)
 ----------------
 
