@@ -488,6 +488,10 @@ class Path(DefaultAbstractPath):
         """
         if prefix is None:
             prefix = tempfile.template
+        if dir is not None:
+            # Note that this is not safe on Python 2
+            # There is no work around, apart from not using the tempfile module
+            dir = str(Path(dir))
         fd, filename = tempfile.mkstemp(suffix, prefix, dir, text)
         return fd, cls(filename).absolute()
 
@@ -505,6 +509,10 @@ class Path(DefaultAbstractPath):
         """
         if prefix is None:
             prefix = tempfile.template
+        if dir is not None:
+            # Note that this is not safe on Python 2
+            # There is no work around, apart from not using the tempfile module
+            dir = str(Path(dir))
         dirname = tempfile.mkdtemp(suffix, prefix, dir)
         return cls(dirname).absolute()
 
