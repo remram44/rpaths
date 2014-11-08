@@ -875,7 +875,7 @@ class Path(DefaultAbstractPath):
 
     @contextlib.contextmanager
     def rewrite(self, mode='r', name=None, temp=None, tempext='~', **kwargs):
-        """Replaces this file with new content.
+        r"""Replaces this file with new content.
 
         This context manager gives you two file objects, (r, w), where r is
         readable and has the current content of the file, and w is writable
