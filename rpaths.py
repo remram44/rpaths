@@ -438,6 +438,25 @@ PosixPath._cmp_base = PosixPath
 DefaultAbstractPath = WindowsPath if os.name == 'nt' else PosixPath
 
 
+try:
+    import unicodedata
+except ImportError:
+    pass
+else:
+    class MacOSPath(PosixPath):
+        """An abstract representation of a path on Mac OS X.
+
+        The filesystem on Mac OS X (HFS) normalizes unicode sequences (NFC).
+        """
+        @classmethod
+        def _normpath(cls, p):
+            return unicodedata.normalize('NFC',
+                                         p.decode('utf-8')).encode('utf-8')
+
+    if sys.platform == 'darwin':
+        DefaultAbstractPath = MacOSPath
+
+
 class Path(DefaultAbstractPath):
     """A concrete representation of an actual path on this system.
 
