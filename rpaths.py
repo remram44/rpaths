@@ -101,8 +101,20 @@ class AbstractPath(object):
             self._sep = self._sep.decode('ascii')
         elif self._backend is bytes and isinstance(self._sep, unicode):
             self._sep = self._sep.encode('ascii')
-        self.path = self._lib.normpath(
+        self.path = self._normpath(
                 self._lib.join(*[self._to_backend(p) for p in parts]))
+
+    @classmethod
+    def _normpath(cls, p):
+        """This gets a pathname into the proper form it will be stored as.
+        """
+        return cls._lib.normpath(p)
+
+    @classmethod
+    def _normcase(cls, p):
+        """This gets a pathname into the proper form for equality testing.
+        """
+        return cls._lib.normcase(p)
 
     def __div__(self, other):
         """Joins two paths.
@@ -133,7 +145,7 @@ class AbstractPath(object):
         except TypeError:
             return NotImplemented
         else:
-            return (self._lib.normcase(self.path) == self._lib.normcase(other))
+            return (self._normcase(self.path) == self._normcase(other))
 
     # functools.total_ordering is broken (cf http://bugs.python.org/issue10042)
     # so we don't use it
@@ -151,7 +163,7 @@ class AbstractPath(object):
         except TypeError:
             return NotImplemented
         else:
-            return self._lib.normcase(self.path) < self._lib.normcase(other)
+            return self._normcase(self.path) < self._normcase(other)
 
     def __le__(self, other):
         """Compares two paths.
@@ -163,7 +175,7 @@ class AbstractPath(object):
         except TypeError:
             return NotImplemented
         else:
-            return self._lib.normcase(self.path) <= self._lib.normcase(other)
+            return self._normcase(self.path) <= self._normcase(other)
 
     def __gt__(self, other):
         """Compares two paths.
@@ -175,7 +187,7 @@ class AbstractPath(object):
         except TypeError:
             return NotImplemented
         else:
-            return self._lib.normcase(self.path) > self._lib.normcase(other)
+            return self._normcase(self.path) > self._normcase(other)
 
     def __ge__(self, other):
         """Compares two paths.
@@ -187,10 +199,10 @@ class AbstractPath(object):
         except TypeError:
             return NotImplemented
         else:
-            return self._lib.normcase(self.path) >= self._lib.normcase(other)
+            return self._normcase(self.path) >= self._normcase(other)
 
     def __hash__(self):
-        return hash(self._lib.normcase(self.path))
+        return hash(self._normcase(self.path))
 
     def __repr__(self):
         """Prints a representation of the path.
@@ -357,7 +369,7 @@ class AbstractPath(object):
     def norm_case(self):
         """Removes the case if this flavor of paths is case insensitive.
         """
-        return self.__class__(self._lib.normcase(self.path))
+        return self.__class__(self._normcase(self.path))
 
     @property
     def is_absolute(self):
@@ -378,7 +390,7 @@ class AbstractPath(object):
 
         i = -1
         for i, (orig_part, dest_part) in enumerate(zip(orig_list, dest_list)):
-            if orig_part != self._lib.normcase(dest_part):
+            if orig_part != self._normcase(dest_part):
                 up = ['..'] * (len(orig_list) - i)
                 return self.__class__(*(up + dest_list[i:]))
 
