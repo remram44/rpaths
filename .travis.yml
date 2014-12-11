@@ -1,3 +1,6 @@
+os:
+  - linux
+  - osx
 language: python
 env:
   - TEST_MODE=run_tests
@@ -12,7 +15,9 @@ script: .travis/test.sh
 after_success: .travis/finish.sh
 matrix:
   include:
-    - python: "2.7"
+    - os: linux
+      python: "2.7"
       env: TEST_MODE=check_style
-    - python: "2.7"
+    - os: linux
+      python: "2.7"
       env: TEST_MODE=measure_coverage
