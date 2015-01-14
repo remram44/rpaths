@@ -32,7 +32,7 @@ class TestConcrete(unittest.TestCase):
         elif os.name != 'nt' and isinstance(cwd, unicode):
             cwd = cwd.encode(sys.getfilesystemencoding())
         self.assertEqual(Path.cwd().path, cwd)
-        tmp = Path.tempdir()
+        tmp = Path.tempdir().resolve()
         with tmp.in_dir():
             self.assertEqual(Path.cwd(), tmp)
         self.assertNotEqual(Path.cwd(), tmp)
