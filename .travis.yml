@@ -21,4 +21,4 @@ matrix:
       env: TEST_MODE=check_style
     - os: linux
       python: "2.7"
-      env: TEST_MODE=measure_coverage
+      env: TEST_MODE=coverage

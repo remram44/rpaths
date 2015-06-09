@@ -10,7 +10,7 @@ in
     check_style)
         flake8 --ignore=E126 rpaths.py setup.py tests
         ;;
-    measure_coverage)
+    coverage)
         coverage run --source=rpaths.py --branch tests/__main__.py
         ;;
 esac

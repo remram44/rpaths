@@ -4,7 +4,7 @@ set -eux
 
 case "$TEST_MODE"
 in
-    measure_coverage)
-        coveralls
+    coverage)
+        codecov
         ;;
 esac
