@@ -996,8 +996,12 @@ class Pattern(object):
     def _prepare_path(path):
         # Here we want to force the use of replacement characters.
         # The __unicode__ implementation might use 'surrogateescape'
+        replace = False
         if isinstance(path, AbstractPath):
+            replace = path._lib.sep if path._lib.sep != '/' else None
             path = path.path
+        else:
+            replace = Path._lib.sep if Path._lib.sep != '/' else None
         if isinstance(path, bytes):
             path = path.decode(sys.getfilesystemencoding(), 'replace')
         elif not isinstance(path, unicode):
@@ -1005,6 +1009,9 @@ class Pattern(object):
 
         if path.startswith('/'):
             path = path[1:]
+
+        if replace is not None:
+            path = path.replace(replace, '/')
 
         return path
 
