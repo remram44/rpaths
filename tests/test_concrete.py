@@ -8,7 +8,7 @@ except ImportError:
     import unittest
 
 from rpaths import unicode, dict_union, Path, PosixPath, WindowsPath, \
-    pattern2re
+    Pattern, pattern2re
 
 
 windows_only = unittest.skipUnless(issubclass(Path, WindowsPath),
@@ -152,10 +152,14 @@ class TestLists(unittest.TestCase):
                             [b'file', b'r\xC3\xA9pertoire',
                              b'r\xC3\xA9pertoire/file']))
 
-        self.compare_paths(self.tmp, self.tmp.recursedir('/file'),
+        self.compare_paths(self.tmp, self.tmp.recursedir(Pattern('/file')),
                            (['file'], [b'file']))
         self.compare_paths(self.tmp,
                            self.tmp.recursedir('/r\xE9pertoire/file'),
+                           (['r\xE9pertoire\\file'],
+                            [b'r\xC3\xA9pertoire/file']))
+        self.compare_paths(self.tmp,
+                           self.tmp.recursedir(Pattern('/r\xE9pertoire/file')),
                            (['r\xE9pertoire\\file'],
                             [b'r\xC3\xA9pertoire/file']))
 
@@ -163,17 +167,23 @@ class TestLists(unittest.TestCase):
 class TestPattern2Re(unittest.TestCase):
     """Tests the pattern2re() function, used to recognize extended patterns.
     """
-    def do_test_pattern(self, pattern, start, tests):
+    def do_test_pattern(self, pattern, start, tests, interm=False):
         s, fr, ir = pattern2re(pattern)
         error = ''
         if s != start:
             error += "\n%r didn't start at %r (but %r)" % (pattern, start, s)
+        if interm:
+            r = ir
+            suffix = " (interm=True)"
+        else:
+            r = fr
+            suffix = ""
         for path, expected in tests:
-            passed = fr.search(path)
+            passed = r.search(path)
             if passed and not expected:
-                error += "\n%r matched %r" % (pattern, path)
+                error += "\n%r matched %r%s" % (pattern, path, suffix)
             elif not passed and expected:
-                error += "\n%r didn't match %r" % (pattern, path)
+                error += "\n%r didn't match %r%s" % (pattern, path, suffix)
         if error:
             self.fail(error)
 
@@ -280,6 +290,40 @@ class TestPattern2Re(unittest.TestCase):
              ('some:]file', True),
              ('someb]file', False),
              ('somebfile', False)])
+
+    def test_iterm(self):
+        """Tests the int_regex return value."""
+        self.do_test_pattern(
+            r'/usr/path/*.txt',
+            'usr/path',
+            [('usr', True),
+             ('usr/path', True),
+             ('usr/lib', False)],
+            interm=True)
+
+    def test_pattern(self):
+        """Tests the high-level Pattern class."""
+        for pattern in ('/usr/l*/**/*.txt', b'/usr/l*/**/*.txt'):
+            pattern = Pattern(pattern)
+            self.assertTrue(pattern.matches('/usr/lib/irc/test.txt'))
+            self.assertTrue(pattern.matches(b'/usr/local/lib/test.txt'))
+            self.assertFalse(pattern.matches('/usr/bin/test.txt'))
+            self.assertTrue(pattern.may_contain_matches('/usr/lib'))
+            self.assertTrue(pattern.may_contain_matches('/usr'))
+            self.assertFalse(pattern.may_contain_matches(b'/usr/bin'))
+
+            self.assertTrue(pattern.matches('usr/lib/irc/test.txt'))
+            self.assertFalse(pattern.matches('smthg/usr/lib/irc/test.txt'))
+            self.assertTrue(pattern.may_contain_matches('usr/lib'))
+            self.assertTrue(pattern.may_contain_matches('usr'))
+
+            self.assertTrue(pattern.matches(WindowsPath(
+                'usr\\localuser\\Binaries\\readme.txt')))
+            self.assertFalse(pattern.matches(WindowsPath(
+                'usr\\otheruser\\Binaries\\readme.txt')))
+
+            self.assertEqual(pattern.matches('usr\\lib\\thing\\readme.txt'),
+                             issubclass(Path, WindowsPath))
 
 
 class TestDictUnion(unittest.TestCase):

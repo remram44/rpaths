@@ -585,19 +585,22 @@ class Path(DefaultAbstractPath):
             pass
         elif callable(pattern):
             files = filter(pattern, files)
-        elif isinstance(pattern, backend_types):
-            if isinstance(pattern, bytes):
-                pattern = pattern.decode(self._encoding, 'replace')
-            start, full_re, int_re = pattern2re(pattern)
+        else:
+            if isinstance(pattern, backend_types):
+                if isinstance(pattern, bytes):
+                    pattern = pattern.decode(self._encoding, 'replace')
+                start, full_re, _int_re = pattern2re(pattern)
+            elif isinstance(pattern, Pattern):
+                start, full_re = pattern.start_dir, pattern.full_regex
+            else:
+                raise TypeError("listdir() expects pattern to be a callable, "
+                                "a regular expression or a string pattern, "
+                                "got %r" % type(pattern))
             # If pattern contains slashes (other than first and last chars),
             # listdir() will never match anything
             if start:
                 return []
             files = [f for f in files if full_re.search(f.unicodename)]
-        else:
-            raise TypeError("listdir() expects pattern to be a callable, "
-                            "a regular expression or a string pattern, "
-                            "got %r" % type(pattern))
         return files
 
     def recursedir(self, pattern=None, top_down=True):
@@ -627,10 +630,18 @@ class Path(DefaultAbstractPath):
             pattern = lambda p: True
         elif callable(pattern):
             pass
-        elif isinstance(pattern, backend_types):
-            if isinstance(pattern, bytes):
-                pattern = pattern.decode(self._encoding, 'replace')
-            start, full_re, int_re = pattern2re(pattern)
+        else:
+            if isinstance(pattern, backend_types):
+                if isinstance(pattern, bytes):
+                    pattern = pattern.decode(self._encoding, 'replace')
+                start, full_re, int_re = pattern2re(pattern)
+            elif isinstance(pattern, Pattern):
+                start, full_re, int_re = \
+                    pattern.start_dir, pattern.full_regex, pattern.int_regex
+            else:
+                raise TypeError("recursedir() expects pattern to be a "
+                                "callable, a regular expression or a string "
+                                "pattern, got %r" % type(pattern))
             if self._lib.sep != '/':
                 pattern = lambda p: full_re.search(
                     unicode(p).replace(self._lib.sep, '/'))
@@ -641,10 +652,6 @@ class Path(DefaultAbstractPath):
                 pattern = lambda p: full_re.search(unicode(p))
                 if int_re is not None:
                     int_pattern = lambda p: int_re.search(unicode(p))
-        else:
-            raise TypeError("recursedir() expects pattern to be a callable, "
-                            "a regular expression or a string pattern, got "
-                            "%r" % type(pattern))
         if not start:
             path = self
         else:
@@ -966,6 +973,74 @@ class Path(DefaultAbstractPath):
         pathw.rename(pathr)
 
 
+class Pattern(object):
+    """A pattern that paths can be matched against.
+
+    You can check if a filename matches this pattern by using `matches()`, or
+    pass it to the `Path.listdir` and `Path.recursedir` methods.
+
+    `may_contain_matches()` is a special method which you can feed directories
+    to; if it returns False, no path under that one will match the pattern.
+
+    >>> pattern = Pattern('/usr/l*/**.so')
+    >>> pattern.matches('/usr/local/irc/mod_user.so')
+    True
+    >>> pattern.matches('/usr/bin/thing.so')
+    False
+    >>> pattern.may_contain_matches('/usr')
+    True
+    >>> pattern.may_contain_matches('/usr/lib')
+    True
+    >>> pattern.may_contain_matches('/usr/bin')
+    False
+    """
+    def __init__(self, pattern):
+        if isinstance(pattern, bytes):
+            pattern = pattern.decode(sys.getfilesystemencoding())
+        self.start_dir, self.full_regex, self.int_regex = pattern2re(pattern)
+
+    @staticmethod
+    def _prepare_path(path):
+        # Here we want to force the use of replacement characters.
+        # The __unicode__ implementation might use 'surrogateescape'
+        replace = False
+        if isinstance(path, AbstractPath):
+            replace = path._lib.sep if path._lib.sep != '/' else None
+            path = path.path
+        else:
+            replace = Path._lib.sep if Path._lib.sep != '/' else None
+        if isinstance(path, bytes):
+            path = path.decode(sys.getfilesystemencoding(), 'replace')
+        elif not isinstance(path, unicode):
+            raise TypeError("Expected a path, got %r" % type(path))
+
+        if path.startswith('/'):
+            path = path[1:]
+
+        if replace is not None:
+            path = path.replace(replace, '/')
+
+        return path
+
+    def matches(self, path):
+        """Tests if the given path matches the pattern.
+
+        Note that the unicode translation of the patch is matched, so
+        replacement characters might have been added.
+        """
+        path = self._prepare_path(path)
+        return self.full_regex.search(path) is not None
+
+    def may_contain_matches(self, path):
+        """Tests whether it's possible for paths under the given one to match.
+
+        If this method returns None, no path under the given one will match the
+        pattern.
+        """
+        path = self._prepare_path(path)
+        return self.int_regex.search(path) is not None
+
+
 no_special_chars = re.compile(r'^(?:[^\\*?\[\]]|\\.)*$')
 
 
@@ -1034,7 +1109,7 @@ def pattern2re(pattern):
         return '', re.compile(''), None
     elif '/' in pattern:
         full_regex = '^'  # Start at beginning of path
-        int_regex = ['^']
+        int_regex = []
         int_regex_done = False
         start_dir = []
         start_dir_done = False
