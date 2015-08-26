@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.11 (2015-08-26)
+-----------------
+
+Enhancements:
+* Add a `Pattern` class, exposing pattern-matching outside of directory listing.
+
 0.10 (2014-11-06)
 -----------------
 
