@@ -102,7 +102,7 @@ class AbstractPath(object):
         elif self._backend is bytes and isinstance(self._sep, unicode):
             self._sep = self._sep.encode('ascii')
         self.path = self._normpath(
-                self._lib.join(*[self._to_backend(p) for p in parts]))
+            self._lib.join(*[self._to_backend(p) for p in parts]))
 
     @classmethod
     def _normpath(cls, p):
@@ -633,10 +633,10 @@ class Path(DefaultAbstractPath):
             start, full_re, int_re = pattern2re(pattern)
             if self._lib.sep != '/':
                 pattern = lambda p: full_re.search(
-                        unicode(p).replace(self._lib.sep, '/'))
+                    unicode(p).replace(self._lib.sep, '/'))
                 if int_re is not None:
                     int_pattern = lambda p: int_re.search(
-                            unicode(p).replace(self._lib.sep, '/'))
+                        unicode(p).replace(self._lib.sep, '/'))
             else:
                 pattern = lambda p: full_re.search(unicode(p))
                 if int_re is not None:

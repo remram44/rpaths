@@ -8,7 +8,7 @@ in
         python tests
         ;;
     check_style)
-        flake8 --ignore=E126 rpaths.py setup.py tests
+        flake8 rpaths.py setup.py tests
         ;;
     coverage)
         coverage run --source=rpaths.py --branch tests/__main__.py
