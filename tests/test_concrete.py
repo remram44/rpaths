@@ -8,7 +8,7 @@ except ImportError:
     import unittest
 
 from rpaths import unicode, dict_union, Path, PosixPath, WindowsPath, \
-    pattern2re
+    Pattern, pattern2re
 
 
 windows_only = unittest.skipUnless(issubclass(Path, WindowsPath),
@@ -152,10 +152,14 @@ class TestLists(unittest.TestCase):
                             [b'file', b'r\xC3\xA9pertoire',
                              b'r\xC3\xA9pertoire/file']))
 
-        self.compare_paths(self.tmp, self.tmp.recursedir('/file'),
+        self.compare_paths(self.tmp, self.tmp.recursedir(Pattern('/file')),
                            (['file'], [b'file']))
         self.compare_paths(self.tmp,
                            self.tmp.recursedir('/r\xE9pertoire/file'),
+                           (['r\xE9pertoire\\file'],
+                            [b'r\xC3\xA9pertoire/file']))
+        self.compare_paths(self.tmp,
+                           self.tmp.recursedir(Pattern('/r\xE9pertoire/file')),
                            (['r\xE9pertoire\\file'],
                             [b'r\xC3\xA9pertoire/file']))
 
@@ -296,6 +300,30 @@ class TestPattern2Re(unittest.TestCase):
              ('usr/path', True),
              ('usr/lib', False)],
             interm=True)
+
+    def test_pattern(self):
+        """Tests the high-level Pattern class."""
+        for pattern in ('/usr/l*/**/*.txt', b'/usr/l*/**/*.txt'):
+            pattern = Pattern(pattern)
+            self.assertTrue(pattern.matches('/usr/lib/irc/test.txt'))
+            self.assertTrue(pattern.matches(b'/usr/local/lib/test.txt'))
+            self.assertFalse(pattern.matches('/usr/bin/test.txt'))
+            self.assertTrue(pattern.may_contain_matches('/usr/lib'))
+            self.assertTrue(pattern.may_contain_matches('/usr'))
+            self.assertFalse(pattern.may_contain_matches(b'/usr/bin'))
+
+            self.assertTrue(pattern.matches('usr/lib/irc/test.txt'))
+            self.assertFalse(pattern.matches('smthg/usr/lib/irc/test.txt'))
+            self.assertTrue(pattern.may_contain_matches('usr/lib'))
+            self.assertTrue(pattern.may_contain_matches('usr'))
+
+            self.assertTrue(pattern.matches(WindowsPath(
+                'usr\\localuser\\Binaries\\readme.txt')))
+            self.assertFalse(pattern.matches(WindowsPath(
+                'usr\\otheruser\\Binaries\\readme.txt')))
+
+            self.assertEqual(pattern.matches('usr\\lib\\thing\\readme.txt'),
+                             issubclass(Path, WindowsPath))
 
 
 class TestDictUnion(unittest.TestCase):
