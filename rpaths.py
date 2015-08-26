@@ -1034,7 +1034,7 @@ def pattern2re(pattern):
         return '', re.compile(''), None
     elif '/' in pattern:
         full_regex = '^'  # Start at beginning of path
-        int_regex = ['^']
+        int_regex = []
         int_regex_done = False
         start_dir = []
         start_dir_done = False
