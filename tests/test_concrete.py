@@ -163,17 +163,23 @@ class TestLists(unittest.TestCase):
 class TestPattern2Re(unittest.TestCase):
     """Tests the pattern2re() function, used to recognize extended patterns.
     """
-    def do_test_pattern(self, pattern, start, tests):
+    def do_test_pattern(self, pattern, start, tests, interm=False):
         s, fr, ir = pattern2re(pattern)
         error = ''
         if s != start:
             error += "\n%r didn't start at %r (but %r)" % (pattern, start, s)
+        if interm:
+            r = ir
+            suffix = " (interm=True)"
+        else:
+            r = fr
+            suffix = ""
         for path, expected in tests:
-            passed = fr.search(path)
+            passed = r.search(path)
             if passed and not expected:
-                error += "\n%r matched %r" % (pattern, path)
+                error += "\n%r matched %r%s" % (pattern, path, suffix)
             elif not passed and expected:
-                error += "\n%r didn't match %r" % (pattern, path)
+                error += "\n%r didn't match %r%s" % (pattern, path, suffix)
         if error:
             self.fail(error)
 
@@ -280,6 +286,16 @@ class TestPattern2Re(unittest.TestCase):
              ('some:]file', True),
              ('someb]file', False),
              ('somebfile', False)])
+
+    def test_iterm(self):
+        """Tests the int_regex return value."""
+        self.do_test_pattern(
+            r'/usr/path/*.txt',
+            'usr/path',
+            [('usr', True),
+             ('usr/path', True),
+             ('usr/lib', False)],
+            interm=True)
 
 
 class TestDictUnion(unittest.TestCase):
