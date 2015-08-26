@@ -585,19 +585,22 @@ class Path(DefaultAbstractPath):
             pass
         elif callable(pattern):
             files = filter(pattern, files)
-        elif isinstance(pattern, backend_types):
-            if isinstance(pattern, bytes):
-                pattern = pattern.decode(self._encoding, 'replace')
-            start, full_re, int_re = pattern2re(pattern)
+        else:
+            if isinstance(pattern, backend_types):
+                if isinstance(pattern, bytes):
+                    pattern = pattern.decode(self._encoding, 'replace')
+                start, full_re, _int_re = pattern2re(pattern)
+            elif isinstance(pattern, Pattern):
+                start, full_re = pattern.start_dir, pattern.full_regex
+            else:
+                raise TypeError("listdir() expects pattern to be a callable, "
+                                "a regular expression or a string pattern, "
+                                "got %r" % type(pattern))
             # If pattern contains slashes (other than first and last chars),
             # listdir() will never match anything
             if start:
                 return []
             files = [f for f in files if full_re.search(f.unicodename)]
-        else:
-            raise TypeError("listdir() expects pattern to be a callable, "
-                            "a regular expression or a string pattern, "
-                            "got %r" % type(pattern))
         return files
 
     def recursedir(self, pattern=None, top_down=True):
@@ -627,10 +630,18 @@ class Path(DefaultAbstractPath):
             pattern = lambda p: True
         elif callable(pattern):
             pass
-        elif isinstance(pattern, backend_types):
-            if isinstance(pattern, bytes):
-                pattern = pattern.decode(self._encoding, 'replace')
-            start, full_re, int_re = pattern2re(pattern)
+        else:
+            if isinstance(pattern, backend_types):
+                if isinstance(pattern, bytes):
+                    pattern = pattern.decode(self._encoding, 'replace')
+                start, full_re, int_re = pattern2re(pattern)
+            elif isinstance(pattern, Pattern):
+                start, full_re, int_re = \
+                    pattern.start_dir, pattern.full_regex, pattern.int_regex
+            else:
+                raise TypeError("recursedir() expects pattern to be a "
+                                "callable, a regular expression or a string "
+                                "pattern, got %r" % type(pattern))
             if self._lib.sep != '/':
                 pattern = lambda p: full_re.search(
                     unicode(p).replace(self._lib.sep, '/'))
@@ -641,10 +652,6 @@ class Path(DefaultAbstractPath):
                 pattern = lambda p: full_re.search(unicode(p))
                 if int_re is not None:
                     int_pattern = lambda p: int_re.search(unicode(p))
-        else:
-            raise TypeError("recursedir() expects pattern to be a callable, "
-                            "a regular expression or a string pattern, got "
-                            "%r" % type(pattern))
         if not start:
             path = self
         else:
