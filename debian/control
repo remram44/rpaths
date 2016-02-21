@@ -1,0 +1,27 @@
+Source: rpaths
+Maintainer: Remi Rampin <remirampin@gmail.com>
+Homepage: https://github.com/remram44/rpaths
+Section: python
+Priority: optional
+X-Python-Version: >= 2.6
+X-Python3-Version: >= 3.2
+Build-Depends: debhelper (>= 9), dh-python, python-all, python3-all,
+               python-setuptools, python3-setuptools
+
+Package: python-rpaths
+Architecture: all
+Depends: ${python:Depends}, ${misc:Depends}
+Description: path manipulation library
+ Rpaths is another path manipulation library. It is heavily inspired by Unipath
+ and pathlib.
+ .
+ It aims at total Python 2/3 and Windows/POSIX compatibility.
+
+Package: python3-rpaths
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Description: path manipulation library
+ Rpaths is another path manipulation library. It is heavily inspired by Unipath
+ and pathlib.
+ .
+ It aims at total Python 2/3 and Windows/POSIX compatibility.
