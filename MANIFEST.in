@@ -1,3 +1,6 @@
 include README.md
 include LICENSE
 include CHANGELOG.md
+graft tests
+
+global-exclude *.py[co]
