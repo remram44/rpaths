@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.12 (???)
+----------
+
+Enhancements:
+* Don't follow symlinks in `recursedir()`
+* Allow `recursedir()` to keep going by passing it a `handle_errors` callback instead of letting it raise.
+
+Behavior change:
+* `recursedir()` now doesn't follow symlinks unless you set `follow_links=True` explicitely
+
 0.11 (2015-08-26)
 -----------------
 
