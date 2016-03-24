@@ -603,7 +603,7 @@ class Path(DefaultAbstractPath):
             files = [f for f in files if full_re.search(f.unicodename)]
         return files
 
-    def recursedir(self, pattern=None, top_down=True):
+    def recursedir(self, pattern=None, top_down=True, follow_links=False):
         """Recursively lists all files under this directory.
 
         Symbolic links will be walked but files will never be duplicated.
@@ -620,6 +620,8 @@ class Path(DefaultAbstractPath):
          * '[abc]' matches characters 'a', 'b' or 'c'
          * two asterisks '**' matches one or more path components (might match
            '/' characters)
+
+        Symbolic links will only be followed if `follow_links` is True.
         """
         if not self.is_dir():
             raise ValueError("recursedir() called on non-directory %s" % self)
@@ -662,9 +664,11 @@ class Path(DefaultAbstractPath):
                 return [path]
         return path._recursedir(pattern=pattern, int_pattern=int_pattern,
                                 top_down=top_down, seen=set(),
-                                path=self.__class__(start))
+                                path=self.__class__(start),
+                                follow_links=follow_links)
 
-    def _recursedir(self, pattern, int_pattern, top_down, seen, path):
+    def _recursedir(self, pattern, int_pattern, top_down, seen, path,
+                    follow_links=False):
         real_dir = self.resolve()
         if real_dir in seen:
             return
@@ -672,7 +676,7 @@ class Path(DefaultAbstractPath):
         for child in os.listdir(self.path):
             newpath = path / child
             child = self / child
-            is_dir = child.is_dir()
+            is_dir = child.is_dir() and (not child.is_link() or follow_links)
             # Fast failing thanks to int_pattern here: if we don't match
             # int_pattern, don't try inner files either
             matches_pattern = pattern(newpath)
@@ -681,13 +685,15 @@ class Path(DefaultAbstractPath):
                 continue
             if is_dir and not top_down:
                 for grandkid in child._recursedir(pattern, int_pattern,
-                                                  top_down, seen, newpath):
+                                                  top_down, seen, newpath,
+                                                  follow_links):
                     yield grandkid
             if matches_pattern:
                 yield child
             if is_dir and top_down:
                 for grandkid in child._recursedir(pattern, int_pattern,
-                                                  top_down, seen, newpath):
+                                                  top_down, seen, newpath,
+                                                  follow_links):
                     yield grandkid
 
     def exists(self):
