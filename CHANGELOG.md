@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.12 (???)
-----------
+0.12 (2016-03-25)
+-----------------
 
 Enhancements:
 * Don't follow symlinks in `recursedir()`
