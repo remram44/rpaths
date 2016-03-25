@@ -497,18 +497,18 @@ class Path(DefaultAbstractPath):
         The return value is a pair (fd, path) where fd is the file descriptor
         returned by :func:`os.open`, and path is a :class:`~rpaths.Path` to it.
 
-        If `suffix` is specified, the file name will end with that suffix,
-        otherwise there will be no suffix.
+        :param suffix: If specified, the file name will end with that suffix,
+            otherwise there will be no suffix.
 
-        If `prefix` is specified, the file name will begin with that prefix,
-        otherwise a default prefix is used.
+        :param prefix: Is specified, the file name will begin with that prefix,
+            otherwise a default prefix is used.
 
-        If `dir` is specified, the file will be created in that directory,
-        otherwise a default directory is used.
+        :param dir: If specified, the file will be created in that directory,
+            otherwise a default directory is used.
 
-        If `text` is specified and true, the file is opened in text mode. Else
-        (the default) the file is opened in binary mode.  On some operating
-        systems, this makes no difference.
+        :param text: If true, the file is opened in text mode. Else (the
+            default) the file is opened in binary mode.  On some operating
+            systems, this makes no difference.
 
         The file is readable and writable only by the creating user ID.
         If the operating system uses permission bits to indicate whether a
@@ -530,13 +530,13 @@ class Path(DefaultAbstractPath):
     def tempdir(cls, suffix='', prefix=None, dir=None):
         """Returns a new temporary directory.
 
-        Arguments are as for tempfile, except that the `text` argument is
-        not accepted.
+        Arguments are as for :meth:`~rpaths.Path.tempfile`, except that the
+        `text` argument is not accepted.
 
         The directory is readable, writable, and searchable only by the
         creating user.
 
-        Caller is responsible for deleting the directory when done with it.
+        The caller is responsible for deleting the directory when done with it.
         """
         if prefix is None:
             prefix = tempfile.template
@@ -548,7 +548,7 @@ class Path(DefaultAbstractPath):
         return cls(dirname).absolute()
 
     def absolute(self):
-        """Returns a normalized absolutized version of the pathname path.
+        """Returns a normalized absolutized version of the path.
         """
         return self.__class__(self._lib.abspath(self.path))
 
@@ -579,6 +579,9 @@ class Path(DefaultAbstractPath):
         """Returns a list of all the files in this directory.
 
         The special entries ``'.'`` and ``'..'`` will not be returned.
+
+        :param pattern: A pattern to match directory entries against.
+        :type pattern: NoneType | Callable | Pattern | unicode | bytes
         """
         files = [self / self.__class__(p) for p in os.listdir(self.path)]
         if pattern is None:
@@ -607,27 +610,29 @@ class Path(DefaultAbstractPath):
                    handle_errors=None):
         """Recursively lists all files under this directory.
 
-        Symbolic links will be walked but files will never be duplicated.
+        :param pattern: An extended patterns, where:
 
-        This accepts extended patterns, where:
-         * a slash '/' always represents the path separator
-         * a backslash '\' escapes other special characters
-         * an initial slash '/' anchors the match at the beginning of the
-           (relative) path
-         * a trailing '/' suffix is removed
-         * an asterisk '*'  matches a sequence of any length (including 0) of
-           any characters (except the path separator)
-         * a '?' matches exactly one character (except the path separator)
-         * '[abc]' matches characters 'a', 'b' or 'c'
-         * two asterisks '**' matches one or more path components (might match
-           '/' characters)
+            * a slash '/' always represents the path separator
+            * a backslash '\' escapes other special characters
+            * an initial slash '/' anchors the match at the beginning of the
+              (relative) path
+            * a trailing '/' suffix is removed
+            * an asterisk '*'  matches a sequence of any length (including 0)
+              of any characters (except the path separator)
+            * a '?' matches exactly one character (except the path separator)
+            * '[abc]' matches characters 'a', 'b' or 'c'
+            * two asterisks '**' matches one or more path components (might
+              match '/' characters)
+        :type pattern: NoneType | Callable | Pattern | unicode | bytes
 
-        Symbolic links will only be followed if `follow_links` is True.
+        :param follow_links: If False, symbolic links will not be followed (the
+            default). Else, they will be followed, but directories reached
+            through different names will *not* be listed multiple times.
 
-        `handle_errors` can be set to a callback that will be called when an
-        error is encountered while accessing the filesystem (such as a
-        permission issue). If set to None (the default), exceptions will be
-        propagated.
+        :param handle_errors: Can be set to a callback that will be called when
+            an error is encountered while accessing the filesystem (such as a
+            permission issue). If set to None (the default), exceptions will be
+            propagated.
         """
         if not self.is_dir():
             raise ValueError("recursedir() called on non-directory %s" % self)
@@ -803,6 +808,16 @@ class Path(DefaultAbstractPath):
         """Creates that directory, or a directory under this one.
 
         ``path.mkdir(name)`` is a shortcut for ``(path/name).mkdir()``.
+
+        :param name: Path component to append to this path before creating the
+            directory.
+
+        :param parents: If True, missing directories leading to the path will
+            be created too, recursively. If False (the default), the parent of
+            that path needs to exist already.
+
+        :param mode: Permissions associated with the directory on creation,
+            without race conditions.
         """
         if name is not None:
             return (self / name).mkdir(parents=parents, mode=mode)
@@ -819,8 +834,8 @@ class Path(DefaultAbstractPath):
 
         Use :func:`~rpaths.Path.rmtree` if it might still contain files.
 
-        If parents is True, it will also destroy every empty directory above it
-        until an error is encountered.
+        :param parents: If set to True, it will also destroy every empty
+            directory above it until an error is encountered.
         """
         if parents:
             os.removedirs(self.path)
@@ -835,8 +850,10 @@ class Path(DefaultAbstractPath):
     def rename(self, new, parents=False):
         """Renames this path to the given new location.
 
-        If `parents` is True, it will create the parent directories of the
-        target if they don't exist.
+        :param new: New path where to move this one.
+
+        :param parents: If set to True, it will create the parent directories
+            of the target if they don't exist.
         """
         if parents:
             os.renames(self.path, self._to_backend(new))
@@ -925,6 +942,9 @@ class Path(DefaultAbstractPath):
 
         Note that this uses :func:`io.open()` which behaves differently from
         :func:`open()` on Python 2; see the appropriate documentation.
+
+        :param name: Path component to append to this path before opening the
+            file.
         """
         if name is not None:
             return io.open((self / name).path, mode=mode, **kwargs)
@@ -946,6 +966,15 @@ class Path(DefaultAbstractPath):
             with Path('test.txt').rewrite(read_newline='\n',
                                           write_newline='\r\n') as (r, w):
                 w.write(r.read())
+
+        :param name: Path component to append to this path before opening the
+            file.
+
+        :param temp: Temporary file name to write, and then move over this one.
+            By default it's this filename with a ``~`` suffix.
+
+        :param tempext: Extension to add to this file to get the temporary file
+            to write then move over this one. Defaults to ``~``.
         """
         if name is not None:
             pathr = self / name
@@ -1101,6 +1130,7 @@ def pattern2re(pattern):
     """Makes a unicode regular expression from a pattern.
 
     Returns ``(start, full_re, int_re)`` where:
+
      * `start` is either empty or the subdirectory in which to start searching,
      * `full_re` is a regular expression object that matches the requested
        files, i.e. a translation of the pattern
@@ -1109,17 +1139,18 @@ def pattern2re(pattern):
        `int_re`, no path under it will match `full_re`)
 
     This uses extended patterns, where:
-     * a slash '/' always represents the path separator
-     * a backslash '\' escapes other special characters
-     * an initial slash '/' anchors the match at the beginning of the
-       (relative) path
-     * a trailing '/' suffix is removed
-     * an asterisk '*'  matches a sequence of any length (including 0) of any
-       characters (except the path separator)
-     * a '?' matches exactly one character (except the path separator)
-     * '[abc]' matches characters 'a', 'b' or 'c'
-     * two asterisks '**' matches one or more path components (might match '/'
-       characters)
+
+      * a slash '/' always represents the path separator
+      * a backslash '\' escapes other special characters
+      * an initial slash '/' anchors the match at the beginning of the
+        (relative) path
+      * a trailing '/' suffix is removed
+      * an asterisk '*'  matches a sequence of any length (including 0) of any
+        characters (except the path separator)
+      * a '?' matches exactly one character (except the path separator)
+      * '[abc]' matches characters 'a', 'b' or 'c'
+      * two asterisks '**' matches one or more path components (might match '/'
+        characters)
     """
     pattern_segs = filter(None, pattern.split('/'))
 
