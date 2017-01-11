@@ -36,4 +36,5 @@ class Program(unittest.TestProgram):
         else:
             self.test = self.testLoader.loadTestsFromNames(self.testNames)
 
+
 Program()
