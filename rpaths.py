@@ -421,6 +421,8 @@ class WindowsPath(AbstractPath):
     """
     _lib = ntpath
     _encoding = 'windows-1252'
+
+
 WindowsPath._cmp_base = WindowsPath
 
 
@@ -432,6 +434,8 @@ class PosixPath(AbstractPath):
     """
     _lib = posixpath
     _encoding = 'utf-8'
+
+
 PosixPath._cmp_base = PosixPath
 
 
