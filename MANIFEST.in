@@ -2,5 +2,5 @@ include README.md
 include LICENSE
 include CHANGELOG.md
 graft tests
-
+graft doc
 global-exclude *.py[co]
