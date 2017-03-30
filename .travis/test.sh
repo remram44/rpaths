@@ -2,6 +2,8 @@
 
 set -eux
 
+export LC_ALL=C
+
 case "$TEST_MODE"
 in
     run_tests)
