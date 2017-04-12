@@ -82,13 +82,18 @@ class TestConcrete(unittest.TestCase):
             tmp.rmtree()
 
 
+class PathUTF8(Path):
+    if os.name != 'nt':
+        _encoding = 'utf-8'
+
+
 class TestLists(unittest.TestCase):
     """Tests listing methods.
     """
     @classmethod
     def setUpClass(cls):
         """Builds a test hierarchy."""
-        cls.tmp = Path.tempdir()
+        cls.tmp = PathUTF8.tempdir()
         cls.tmp.open('w', 'file').close()
         cls.tmp.open('w', 'r\xE9mi\'s thing').close()
         d = cls.tmp.mkdir('r\xE9pertoire')
