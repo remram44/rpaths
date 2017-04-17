@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.13 (2017-04-17)
+-----------------
+
+Enhancements:
+* Add documentation to sdist (by @ghisvail, #20)
+* Run tests with UTF-8 path encoding (this means they'll pass even on a machine with ASCII locale)
+
 0.12 (2016-03-25)
 -----------------
 
