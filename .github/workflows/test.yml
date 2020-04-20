@@ -11,9 +11,7 @@ jobs:
         os: [ubuntu-latest]
         mode: [run_tests]
         python:
-        - "2.6"
-        - "3.2"
-        - "3.6"
+        - "3.5"
         - "3.8"
         include:
         - os: ubuntu-latest
@@ -44,7 +42,7 @@ jobs:
         os: [windows-latest]
         python:
         - "2.7"
-        - "3.4"
+        - "3.5"
         - "3.8"
     runs-on: ${{ matrix.os }}
     steps:
