@@ -1,3 +1,4 @@
+[![Build Status](https://github.com/remram44/rpaths/workflows/Test/badge.svg)](https://github.com/remram44/rpaths/actions)
 [![Linux Build](https://travis-ci.org/remram44/rpaths.svg?branch=master)](https://travis-ci.org/remram44/rpaths)
 [![Win Build](https://ci.appveyor.com/api/projects/status/s7efr8aoqkyp69t0/branch/master)](https://ci.appveyor.com/project/remram44/rpaths)
 [![Coverage Status](http://codecov.io/github/remram44/rpaths/coverage.svg?branch=master)](http://codecov.io/github/remram44/rpaths/coverage.svg?branch=master)

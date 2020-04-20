@@ -1,0 +1,39 @@
+name: Test
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        mode: [run_tests]
+        python:
+        - "2.6"
+        - "3.2"
+        - "3.6"
+        - "3.8"
+        include:
+        - os: ubuntu-latest
+          mode: check_style
+          python: "2.7"
+        - os: ubuntu-latest
+          mode: coverage
+          python: "2.7"
+    runs-on: ${{ matrix.os }}
+    env:
+      TEST_MODE: ${{ matrix.mode }}
+      PYTHON_VERSION: ${{ matrix.python }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install dependencies
+      run: .ci/install.sh
+    - name: Test
+      run: .ci/test.sh
+    - name: Finish
+      run: .ci/finish.sh
